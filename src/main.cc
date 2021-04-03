@@ -15,8 +15,9 @@ int main() {
   // Debug code
   int count = 0;
   for (auto iter = vTraceData.begin();; iter++) {
-    std::cout << iter->usec << " " << iter->sLBA << std::endl;
-    if (count++ > 10) break;
+    std::cout << iter->id << " " << iter->usec << " " << iter->sLBA
+              << std::endl;
+    if (count++ > 20) break;
   }
   parse_trace();
   // save_pickle();

@@ -25,6 +25,15 @@ int read_trace(std::string fileName, std::vector<TraceData> *vTraceData) {
     vTraceData->emplace_back(std::move(td));
   }
 
+  // Sort the array, just in case
+  std::sort(vTraceData->begin(), vTraceData->end());
+
+  // Assing an unique id
+  uint32_t count = 0;
+  for (auto iter = vTraceData->begin(); iter < vTraceData->end(); iter++) {
+    iter->id = count++;
+  }
+
   file.close();
   return 0;
 }
