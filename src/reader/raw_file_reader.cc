@@ -22,7 +22,7 @@ int read_trace(std::string fileName, std::vector<TraceData> *vTraceData) {
     td.isRead = (match[3].str() == std::string("DiskRead")) ? true : false;
     td.sLBA = strtoull(match[4].str().c_str(), nullptr, 10);
     td.nLB = strtoul(match[5].str().c_str(), nullptr, 10);
-    vTraceData->emplace_back(std::move(td));
+    vTraceData->push_back(std::move(td));
   }
 
   // Sort the array, just in case
