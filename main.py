@@ -9,7 +9,7 @@ import numpy as np
 rawFileName = "snia_refined/MSEnterprise/Enterprise1.total.csv.orig"
 pickleFileName = "trace.bin"
 
-pTraceRaw = []
+pdTrace = []
 lTraceRead = []
 lTraceWrite = []
 lTraceReadCentric = []
@@ -17,10 +17,13 @@ lTraceWriteCentric = []
 
 # Read raw trace
 def read_trace():
-    global pTraceRaw
-    pTraceRaw = pd.read_csv(rawFileName, delim_whitespace=True, names=["time","op", "address", "size"])
-    print(pTraceRaw)
-    sys.exit(0)
+    global pdTrace
+    print_line()
+    print("#1 Reading file...")
+    pdTrace = pd.read_csv(rawFileName, delim_whitespace=True, names=["time","op", "address", "size"])
+    print(pdTrace)
+    print("Finished reading file")
+    print_line()
 
 # Parse raw trace into R/W centric, respectively
 def parse_trace():
