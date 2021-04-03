@@ -2,7 +2,8 @@ import os
 import pickle
 import copy
 
-rawFileName = "snia_refined/MSEnterprise/Enterpr"
+rawFileName = "snia_refined/MSEnterprise/Enterprise1.total.csv.orig"
+pickleFileName = "trace.bin"
 
 lTraceRaw = []
 lTraceRead = []
@@ -13,7 +14,7 @@ lTraceWriteCentric = []
 # Read raw trace
 def read_trace():
     global lTraceRaw
-    with open("trace.txt", "r") as fTraceIn:
+    with open(rawFileName, "r") as fTraceIn:
         lines = fTraceIn.readlines()
     lTraceRaw = [line.strip() for line in lines]
     print(lTraceRaw[0])
@@ -35,14 +36,14 @@ def group_trace():
 # Save R/W centric data
 def save_pickle():
     global lTraceReadCentric, lTraceWriteCentric
-    with open("trace.bin", "wb") as fPickleOut:
+    with open(pickleFileName, "wb") as fPickleOut:
         pickle.dump(lTraceReadCentric, fPickleOut)
         pickle.dump(lTraceWriteCentric, fPickleOut)
 
 # Read from pickle, R/W centric data
 def read_pickle():
     global lTraceReadCentric, lTraceWriteCentric
-    with open("trace.bin", "rb") as fPickleIn:
+    with open(pickleFileName, "rb") as fPickleIn:
         lTraceReadCentric = pickle.load(fPickleIn)
         lTraceWriteCentric = pickle.load(fPickleIn)
 
@@ -53,7 +54,7 @@ def analyze_trace():
     print(lTraceWriteCentric)
 
 if (__name__ == "__main__"):
-    if not os.path.exists("trace.bin"):
+    if not os.path.exists(pickleFileName):
         read_trace()
         parse_trace()
         group_trace()
