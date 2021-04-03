@@ -14,8 +14,7 @@ int main() {
               << vTraceData[i].sLBA << " " << vTraceData[i].nLB << " "
               << vTraceData[i].isRead << std::endl;
   }
-  // parse_trace();
-  // group_trace();
+  parse_trace();
   // save_pickle();
   // analyze_trace();
   return 0;
