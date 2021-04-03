@@ -5,13 +5,12 @@ import sys
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 rawFileName = "snia_refined/MSEnterprise/Enterprise1.total.csv.orig"
 pickleFileName = "trace.bin"
 
 pdTrace = []
-lTraceRead = []
-lTraceWrite = []
 lTraceReadCentric = []
 lTraceWriteCentric = []
 
@@ -23,18 +22,19 @@ def read_trace():
     pdTrace = pd.read_csv(rawFileName, delim_whitespace=True, names=["time","op", "address", "size"])
     print(pdTrace)
     print("Finished reading file")
-    print_line()
 
 # Parse raw trace into R/W centric, respectively
 def parse_trace():
-    global lTraceRaw, lTraceRead, lTraceWrite
-    lTraceRead = copy.deepcopy(lTraceRaw)
-    lTraceWrite = copy.deepcopy(lTraceRaw)
-    print(lTraceRead, lTraceWrite)
+    global pdTrace
+    print_line()
+    print("#2 Parsing file...")
+    pdTrace.sort_values(by=["op", "address", "time"], inplace=True)
+    print(pdTrace.head())
+    print(pdTrace.tail())
 
 # Group traces into R/W centric data
 def group_trace():
-    global lTraceRaw, lTraceReadCentric, lTraceWriteCentric
+    global pdTrace, lTraceReadCentric, lTraceWriteCentric
     lTraceReadCentric = copy.deepcopy(lTraceRaw)
     lTraceWriteCentric = copy.deepcopy(lTraceRaw)
     print(lTraceReadCentric, lTraceWriteCentric)
@@ -58,6 +58,11 @@ def analyze_trace():
     global lTraceReadCentric, lTraceWriteCentric
     print(lTraceReadCentric)
     print(lTraceWriteCentric)
+
+# Helper functions
+def print_line():
+    for i in range(os.get_terminal_size().columns):
+        print('=', end='')
 
 if (__name__ == "__main__"):
     if not os.path.exists(pickleFileName):
