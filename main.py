@@ -1,11 +1,15 @@
+import copy
 import os
 import pickle
-import copy
+import sys
+
+import pandas as pd
+import numpy as np
 
 rawFileName = "snia_refined/MSEnterprise/Enterprise1.total.csv.orig"
 pickleFileName = "trace.bin"
 
-lTraceRaw = []
+pTraceRaw = []
 lTraceRead = []
 lTraceWrite = []
 lTraceReadCentric = []
@@ -13,11 +17,10 @@ lTraceWriteCentric = []
 
 # Read raw trace
 def read_trace():
-    global lTraceRaw
-    with open(rawFileName, "r") as fTraceIn:
-        lines = fTraceIn.readlines()
-    lTraceRaw = [line.strip() for line in lines]
-    print(lTraceRaw[0])
+    global pTraceRaw
+    pTraceRaw = pd.read_csv(rawFileName, delim_whitespace=True, names=["time","op", "address", "size"])
+    print(pTraceRaw)
+    sys.exit(0)
 
 # Parse raw trace into R/W centric, respectively
 def parse_trace():
