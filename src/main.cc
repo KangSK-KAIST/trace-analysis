@@ -4,15 +4,19 @@
 #include "reader/raw_file_reader.hh"
 
 int main() {
+  // std::string fileName(
+  //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
+  //     "Enterprise1.total.csv.orig");
   std::string fileName(
-      "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
-      "Enterprise1.total.csv.orig");
+      "/home/kangsk/gitrepo/trace-analysis/Enterprise1.total.csv.simple");
   std::vector<TraceData> vTraceData;
   read_trace(fileName, &vTraceData);
-  for (int i = 0; i < 10; i++) {
-    std::cout << vTraceData[i].sec << " " << vTraceData[i].usec << " "
-              << vTraceData[i].sLBA << " " << vTraceData[i].nLB << " "
-              << vTraceData[i].isRead << std::endl;
+
+  // Debug code
+  int count = 0;
+  for (auto iter = vTraceData.begin();; iter++) {
+    std::cout << iter->usec << " " << iter->sLBA << std::endl;
+    if (count++ > 10) break;
   }
   parse_trace();
   // save_pickle();
