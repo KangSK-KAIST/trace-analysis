@@ -53,7 +53,7 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
       std::terminate();
     }
     td.sec = strtoul(match[1].str().c_str(), nullptr, 10);
-    td.psec = strtoul(match[2].str().c_str(), nullptr, 10) * 1000 *
+    td.psec = strtoull(match[2].str().c_str(), nullptr, 10) * 1000 *
               1000;  // snia in usec
     td.isRead = (match[3].str() == std::string("DiskRead")) ? true : false;
     td.sLBA = strtoull(match[4].str().c_str(), nullptr, 10) *
@@ -61,7 +61,7 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
     td.nLB = strtoul(match[5].str().c_str(), nullptr, 10) *
              512;  // snia is in sectors
     if (bytesToRead < (uint64_t)td.nLB) break;
-    bytesToRead -= td.nLB;
+    bytesToRead -= (uint64_t)td.nLB;
     vTraceData->push_back(std::move(td));
   }
 

@@ -42,14 +42,13 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
 
   std::string line;
   TraceData td;
-  int sectorsToRead = size * 2048;  // size * 1024 * 1024 / 512
+  int64_t bytesToRead = (uint64_t)size * 1024 * 1024;  // size * 1024 * 1024
 
   std::smatch match;
   std::regex regexTrace(
       "[0-9]+,([a-zA-Z]+),([0-9]+),([0-9]+),([0-9]{4})([0-9]+)");
 
   while (std::getline(file, line)) {
-    if (sectorsToRead < 0) break;
     if (!std::regex_match(line, match, regexTrace)) {
       std::cerr << "[ERROR]\tRegex-match error" << std::endl;
       std::terminate();
@@ -58,8 +57,9 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
     td.sLBA = strtoull(match[2].str().c_str(), nullptr, 10);
     td.nLB = strtoul(match[3].str().c_str(), nullptr, 10);
     td.sec = strtoul(match[4].str().c_str(), nullptr, 10);
-    td.psec = strtoul(match[5].str().c_str(), nullptr, 10);
-    sectorsToRead -= td.nLB;
+    td.psec = strtoull(match[5].str().c_str(), nullptr, 10);
+    if (bytesToRead < (uint64_t)td.nLB) break;
+    bytesToRead -= (uint64_t)td.nLB;
     vTraceData->push_back(std::move(td));
   }
 
