@@ -1,6 +1,6 @@
 CC := clang++-7
-CCFLAGS := -Wall -Werror -O0 -g -D_FORTIFY_SOURCE=2 -DDEBUG -DLOGGING
-# CCFLAGS := -O2 -DLOGGING
+# CCFLAGS := -Wall -Werror -O0 -g -D_FORTIFY_SOURCE=2 -DDEBUG -DLOGGING
+CCFLAGS := -O2
 
 .PHONY: all
 all: main_snia main_ali
