@@ -48,9 +48,19 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         }
       }
       if (!owners.empty()) {
+        // Add to all write centric map
+        for (auto owner : owners) {
+          std::vector<id_t> users;
+          if (mWriteCentric->count(owner)) {
+            // This owner was already used
+            users = (*mWriteCentric)[owner];
+            mWriteCentric->erase(owner);
+          }
+          users.push_back(trace.id);
+          mWriteCentric->insert(std::make_pair(owner, std::move(users)));
+        }
         // Existed owner; add to read centric map
         mReadCentric->insert(std::make_pair(trace.id, std::move(owners)));
-        // TODO Add to all write centric map
       }
     } else {
       // The trace is a write; apply segmentation
