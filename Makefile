@@ -3,15 +3,18 @@ CCFLAGS := -Wall -Werror -O0 -g -D_FORTIFY_SOURCE=2 -DDEBUG -DLOGGING
 # CCFLAGS := -O2 -DLOGGING
 
 .PHONY: all
-all: main
+all: main_snia main_ali
 
 include src/reader/makefile.mk
 include src/parser/makefile.mk
 include src/analyzer/makefile.mk
 
-main: src/main.cc build/reader.o build/parser.o build/analyzer.o
-	$(CC) $(CCFLAGS) -o build/main $^
+main_snia: src/main.cc build/snia_reader.o build/parser.o build/analyzer.o
+	$(CC) $(CCFLAGS) -o build/main_snia $^
+
+main_ali: src/main.cc build/snia_reader.o build/parser.o build/analyzer.o
+	$(CC) $(CCFLAGS) -o build/main_ali $^
 
 .PHONY: clean
 clean:
-	rm -rf build
+	rm -r build
