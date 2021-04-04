@@ -27,7 +27,18 @@ void parseTrace(std::vector<TraceData>* vTraceData,
                 std::map<id_t, std::vector<id_t>>* mReadCentric,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric) {
   // Iterate through all traces
+  std::cerr << "[LOG]\tParsingFile..." << std::endl;
+#ifdef COUNTING
+  int segCount = 0;
+  int counter = 0;
+#endif
   for (auto trace : *vTraceData) {
+#ifdef COUNTING
+    if (counter++ % 1000 == 0)
+      std::cerr << "[LOG]\t" << segCount / 2048 << "MB data transfered"
+                << std::endl;  // segCount * 512 / 1024 / 1024
+    segCount += trace.nLB;
+#endif
     if (trace.isRead) {
       // The trace is a read; insert all owners
       std::vector<id_t> owners;

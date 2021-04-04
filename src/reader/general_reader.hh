@@ -26,6 +26,8 @@
 #include "../includes/include.hh"
 #include "../includes/types.hh"
 
-int read_trace(std::string fileName, std::vector<TraceData> *vTraceData);
+void printStat(std::string fileName);
+void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
+               int32_t size);
 
 #endif  // __READER_RAW_FILE_READER_HH

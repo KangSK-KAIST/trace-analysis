@@ -25,15 +25,23 @@
 #include "parser/general_parser.hh"
 #include "reader/general_reader.hh"
 
-int main() {
+int main(int argc, char** argv) {
   // std::string fileName(
   //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
   //     "Enterprise1.total.csv.orig");
-  std::string fileName("/home/kangsk/gitrepo/trace-analysis/test.20");
+  if (argc < 3) {
+    std::cerr << "Usage: main [input filename] [size of transfer (in MB)]"
+              << std::endl;
+    std::terminate();
+  }
+
+  std::string fileName(argv[1]);
+  std::string sizeInput(argv[2]);
+  int32_t size = strtoul(sizeInput.c_str(), nullptr, 10);
 
   std::vector<TraceData> vTraceData;
-  std::cout << "Reading..." << std::endl;
-  read_trace(fileName, &vTraceData);
+  printStat(fileName);
+  readTrace(fileName, &vTraceData, size);
 
 #ifdef DEBUG
   int count = 0;
@@ -43,7 +51,6 @@ int main() {
   }
 #endif
 
-  std::cout << "Parsing..." << std::endl;
   // Simulate the whole memory as a map
   std::map<addr_t, TraceData> mMemory;
   // <Read time, Write time>, <Write time, Read time>
@@ -52,9 +59,6 @@ int main() {
   parseTrace(&vTraceData, &mMemory, &mReadCentric, &mWriteCentric);
 
 #ifdef DEBUG
-  for (auto segment : mMemory) {
-    std::cout << segment.first << "\t" << segment.second.id << std::endl;
-  }
   std::cout << "==================" << std::endl;
   for (auto readOwn : mReadCentric) {
     for (auto data : readOwn.second)

@@ -22,7 +22,15 @@
 
 #include "general_reader.hh"
 
-int read_trace(std::string fileName, std::vector<TraceData> *vTraceData) {
+void printStat(std::string fileName) {
+  std::cerr << "[LOG]\tPrinting File Stat..." << std::endl;
+  std::cout << "FileName:\t" << fileName << std::endl;
+}
+
+void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
+               int32_t size) {
+  std::cerr << "[LOG]\tReading File..." << std::endl;
+
   std::ifstream file(fileName);
   if (!file.is_open()) {
     std::cerr << "[ERROR]\tFile open error" << std::endl;
@@ -31,19 +39,23 @@ int read_trace(std::string fileName, std::vector<TraceData> *vTraceData) {
 
   std::string line;
   TraceData td;
+  int sectorsToRead = size * 2048;  // size * 1024 * 1024 / 512
 
   std::smatch match;
   std::regex regexTrace("([0-9]+)\\.([0-9]+) ([a-zA-Z]+) ([0-9]+) ([0-9]+)");
 
   while (std::getline(file, line)) {
+    if (sectorsToRead < 0) break;
     if (!std::regex_match(line, match, regexTrace)) {
       std::cerr << "[ERROR]\tRegex-match error" << std::endl;
+      std::terminate();
     }
     td.sec = strtoul(match[1].str().c_str(), nullptr, 10);
     td.usec = strtoul(match[2].str().c_str(), nullptr, 10);
     td.isRead = (match[3].str() == std::string("DiskRead")) ? true : false;
     td.sLBA = strtoull(match[4].str().c_str(), nullptr, 10);
     td.nLB = strtoul(match[5].str().c_str(), nullptr, 10);
+    sectorsToRead -= td.nLB;
     vTraceData->push_back(std::move(td));
   }
 
@@ -57,5 +69,4 @@ int read_trace(std::string fileName, std::vector<TraceData> *vTraceData) {
   }
 
   file.close();
-  return 0;
 }
