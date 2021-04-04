@@ -131,3 +131,4 @@ dmypy.json
 snia_refined/
 snia_refined.tar.gz
 Enterprise*
+test.*
