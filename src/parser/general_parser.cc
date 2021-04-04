@@ -29,13 +29,13 @@ void parseTrace(std::vector<TraceData>* vTraceData,
 // Iterate through all traces
 #ifdef LOGGING
   std::cerr << "[LOG]\tParsingFile..." << std::endl;
-  int segCount = 0;
+  int64_t segCount = 0;
   int counter = 0;
 #endif
   for (auto trace : *vTraceData) {
 #ifdef LOGGING
     if (counter++ % 1000 == 0)
-      std::cerr << "[LOG]\t" << segCount / 2048 << "MB data transfered"
+      std::cerr << "[LOG]\t" << segCount / 1024 / 1024 << "MB data transfered"
                 << std::endl;  // segCount * 512 / 1024 / 1024
     segCount += trace.nLB;
 #endif
