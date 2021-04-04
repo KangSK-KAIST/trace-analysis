@@ -29,5 +29,6 @@
 void printStat(std::string fileName);
 void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
                int32_t size);
+void readTrace(std::string fileName, std::vector<TraceData> *vTraceData);
 
 #endif  // __READER_RAW_FILE_READER_HH
