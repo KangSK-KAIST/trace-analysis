@@ -25,7 +25,9 @@
 #include "includes/types.hh"
 #include "parser/general_parser.hh"
 #include "reader/general_reader.hh"
+#ifdef COMPRESSER
 #include "saver/general_saver.hh"
+#endif
 
 int main(int argc, char** argv) {
   // std::string fileName(
