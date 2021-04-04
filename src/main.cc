@@ -33,19 +33,20 @@ int main(int argc, char** argv) {
   // std::string fileName(
   //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
   //     "Enterprise1.total.csv.orig");
-  if (argc < 3) {
-    std::cerr << "Usage: main [input filename] [size of transfer (in "
-                 "MB)]/[output filename]"
-              << std::endl;
-    std::terminate();
-  }
+  // if (argc < 3) {
+  //   std::cerr << "Usage: main [input filename] [size of transfer (in "
+  //                "MB)]/[output filename]"
+  //             << std::endl;
+  //   std::terminate();
+  // }
 
   std::string fileName(argv[1]);
 #ifndef COMPRESSER
   std::string sizeInput(argv[2]);
   int32_t size = strtoul(sizeInput.c_str(), nullptr, 10);
 #else
-  std::string fileOutName(argv[2]);
+  // std::string fileOutName(argv[2]);
+  std::string fileOutName = "";
 #endif
   std::vector<TraceData> vTraceData;
   printStat(fileName);
