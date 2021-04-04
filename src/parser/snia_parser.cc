@@ -34,7 +34,6 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       // The trace is a read; insert all owners
       std::vector<id_t> owners;
       for (auto segment : memory) {
-        std::cout << segment.first << std::endl;
         // Loop through memory segments
         addr_t startTrace = trace.sLBA;
         addr_t endTrace = trace.sLBA + trace.nLB;
@@ -55,11 +54,17 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       }
     } else {
       // The trace is a write; apply segmentation
+      addr_t head = 0;
+      addr_t tail = 0;
+      addr_t huge = 0;
+      std::vector<addr_t> dead;  // Dead may be multiple
+      // Read basic params
+      addr_t startTrace = trace.sLBA;
+      addr_t endTrace = trace.sLBA + trace.nLB;
+
+      // Loop through memory segments
       for (auto segment : memory) {
-        // std::cout << segment.first << std::endl;
-        // Loop through memory segments
-        addr_t startTrace = trace.sLBA;
-        addr_t endTrace = trace.sLBA + trace.nLB;
+        // Read basic params
         addr_t startSegment = segment.first;
         addr_t endSegment = segment.first + segment.second.nLB;
         TraceData data = segment.second;
@@ -68,36 +73,68 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // head case (segment begin < trace begin < segment end <= trace end)
         if ((startSegment < startTrace) && (startTrace < endSegment) &&
             (endSegment <= endTrace)) {
-          data.sLBA = startSegment;
-          data.nLB = startTrace - startSegment;
-          memory.erase(startSegment);
-          memory.insert(std::make_pair(startSegment, std::move(data)));
+          head = data.id;
         }
         // dead case (trace begin <= segment begin < segment end <= trace end)
         else if ((startTrace <= startSegment) && (endSegment <= endTrace)) {
-          memory.erase(startSegment);
+          dead.push_back(data.id);
         }
         // tail case (trace begin <= segment begin < trace end < segment end)
         else if ((startTrace <= startSegment) && (startSegment < endTrace) &&
                  (endTrace < endSegment)) {
-          data.sLBA = endTrace;
-          data.nLB = endSegment - endTrace;
-          memory.erase(startSegment);
-          memory.insert(std::make_pair(endTrace, std::move(data)));
+          tail = data.id;
         }
         // huge case (segment begin < trace begin < trace end < segment end)
         else if ((startSegment < startTrace) && (endTrace < endSegment)) {
-          TraceData dataHead = data;
-          TraceData dataTail = data;
-          dataHead.sLBA = startTrace;
-          dataHead.nLB = startTrace - startSegment;
-          dataTail.sLBA = endTrace;
-          dataTail.nLB = endSegment - endTrace;
-          memory.erase(startSegment);
-          memory.insert(std::make_pair(startSegment, std::move(dataHead)));
-          memory.insert(std::make_pair(endTrace, std::move(dataTail)));
+          huge = data.id;
         }
       }
+      // Finished looping; Modify map
+      if (head) {
+        // Read basic params
+        TraceData data = (*vTraceData)[head];
+        addr_t startSegment = data.sLBA;
+        // Delete/Modify map
+        data.sLBA = startSegment;
+        data.nLB = startTrace - startSegment;
+        memory.erase(startSegment);
+        memory.insert(std::make_pair(startSegment, std::move(data)));
+      }
+      if (tail) {
+        // Read basic params
+        TraceData data = (*vTraceData)[tail];
+        addr_t startSegment = data.sLBA;
+        addr_t endSegment = data.sLBA + data.nLB;
+        // Delete/Modify map
+        data.sLBA = endTrace;
+        data.nLB = endSegment - endTrace;
+        memory.erase(startSegment);
+        memory.insert(std::make_pair(endTrace, std::move(data)));
+      }
+      if (huge) {
+        // Read basic params
+        TraceData data = (*vTraceData)[huge];
+        addr_t startSegment = data.sLBA;
+        addr_t endSegment = data.sLBA + data.nLB;
+        // Delete/Modify map
+        TraceData dataHead = data;
+        TraceData dataTail = data;
+        dataHead.sLBA = startTrace;
+        dataHead.nLB = startTrace - startSegment;
+        dataTail.sLBA = endTrace;
+        dataTail.nLB = endSegment - endTrace;
+        memory.erase(startSegment);
+        memory.insert(std::make_pair(startSegment, std::move(dataHead)));
+        memory.insert(std::make_pair(endTrace, std::move(dataTail)));
+      }
+      for (auto id : dead) {
+        // Read basic params
+        TraceData data = (*vTraceData)[id];
+        addr_t startSegment = data.sLBA;
+        // Delete/Modify map
+        memory.erase(startSegment);
+      }
+      // Add new trace to map
       memory.insert(std::make_pair(trace.sLBA, trace));
     }
   }
