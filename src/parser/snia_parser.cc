@@ -73,7 +73,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // head case (segment begin < trace begin < segment end <= trace end)
         if ((startSegment < startTrace) && (startTrace < endSegment) &&
             (endSegment <= endTrace)) {
-          head = data.id;
+          head = data.sLBA;
         }
         // dead case (trace begin <= segment begin < segment end <= trace end)
         else if ((startTrace <= startSegment) && (endSegment <= endTrace)) {
@@ -82,17 +82,17 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // tail case (trace begin <= segment begin < trace end < segment end)
         else if ((startTrace <= startSegment) && (startSegment < endTrace) &&
                  (endTrace < endSegment)) {
-          tail = data.id;
+          tail = data.sLBA;
         }
         // huge case (segment begin < trace begin < trace end < segment end)
         else if ((startSegment < startTrace) && (endTrace < endSegment)) {
-          huge = data.id;
+          huge = data.sLBA;
         }
       }
       // Finished looping; modify map
       if (head != -1) {
         // Read basic params
-        TraceData data = (*vTraceData)[head];
+        TraceData data = (*mMemory)[head];
         addr_t startSegment = data.sLBA;
         // Delete/Modify map
         data.sLBA = startSegment;
@@ -102,7 +102,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       }
       if (tail != -1) {
         // Read basic params
-        TraceData data = (*vTraceData)[tail];
+        TraceData data = (*mMemory)[tail];
         addr_t startSegment = data.sLBA;
         addr_t endSegment = data.sLBA + data.nLB;
         // Delete/Modify map
@@ -113,7 +113,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       }
       if (huge != -1) {
         // Read basic params
-        TraceData data = (*vTraceData)[huge];
+        TraceData data = (*mMemory)[huge];
         addr_t startSegment = data.sLBA;
         addr_t endSegment = data.sLBA + data.nLB;
         // Delete/Modify map
@@ -129,7 +129,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       }
       for (auto id : dead) {
         // Read basic params
-        TraceData data = (*vTraceData)[id];
+        TraceData data = (*mMemory)[id];
         addr_t startSegment = data.sLBA;
         // Delete/Modify map
         mMemory->erase(startSegment);
