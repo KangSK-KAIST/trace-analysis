@@ -22,8 +22,8 @@
 
 #include "includes/include.hh"
 #include "includes/types.hh"
-#include "parser/snia_parser.hh"
-#include "reader/raw_file_reader.hh"
+#include "parser/general_parser.hh"
+#include "reader/general_reader.hh"
 
 int main() {
   // std::string fileName(

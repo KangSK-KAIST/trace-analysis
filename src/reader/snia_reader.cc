@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "raw_file_reader.hh"
+#include "general_reader.hh"
 
 int read_trace(std::string fileName, std::vector<TraceData> *vTraceData) {
   std::ifstream file(fileName);
