@@ -1,5 +1,6 @@
 CC := clang++-7
-CCFLAGS := -Wall -Werror
+CCFLAGS := -Wall -Werror -O0 -g -D_FORTIFY_SOURCE=2 -DDEBUG
+# CCFLAGS := -O2 -Wdocumentation
 
 .PHONY: all
 all: main
