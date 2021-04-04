@@ -1,6 +1,6 @@
-build/parser.o: build/snia_parser.o
-	cp build/snia_parser.o build/parser.o
+build/parser.o: build/general_parser.o
+	cp build/general_parser.o build/parser.o
 
-build/snia_parser.o: src/parser/snia_parser.cc
+build/general_parser.o: src/parser/general_parser.cc
 	mkdir -p build
-	$(CC) $(CCFLAGS) -c -o build/snia_parser.o src/parser/snia_parser.cc
+	$(CC) $(CCFLAGS) -c -o build/general_parser.o src/parser/general_parser.cc
