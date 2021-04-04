@@ -31,6 +31,8 @@ void parseTrace(std::vector<TraceData>* vTraceData,
     if (trace.isRead) {
       // The trace is a read; insert all owners
       std::vector<id_t> owners;
+      if (!owners.empty()) std::terminate();
+
       // Loop through memory segments
       for (auto segment : (*mMemory)) {
         // Read basic params
@@ -45,7 +47,6 @@ void parseTrace(std::vector<TraceData>* vTraceData,
           owners.push_back(segment.second.id);
         }
       }
-      // std::cout << owners.empty() << std::endl;
       if (!owners.empty()) {
         // Existed owner; add to read centric map
         mReadCentric->insert(std::make_pair(trace.id, std::move(owners)));
