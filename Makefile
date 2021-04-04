@@ -12,7 +12,7 @@ include src/analyzer/makefile.mk
 main_snia: src/main.cc build/snia_reader.o build/parser.o build/analyzer.o
 	$(CC) $(CCFLAGS) -o build/main_snia $^
 
-main_ali: src/main.cc build/snia_reader.o build/parser.o build/analyzer.o
+main_ali: src/main.cc build/alibaba_reader.o build/parser.o build/analyzer.o
 	$(CC) $(CCFLAGS) -o build/main_ali $^
 
 .PHONY: clean
