@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 #ifdef DEBUG
   int count = 0;
   for (auto iter = vTraceData.begin(); count++ < 20; iter++) {
-    std::cout << iter->id << " " << iter->usec << " " << iter->sLBA << " "
+    std::cerr << iter->id << " " << iter->psec << " " << iter->sLBA << " "
               << iter->isRead << std::endl;
   }
 #endif
@@ -60,15 +60,15 @@ int main(int argc, char** argv) {
   parseTrace(&vTraceData, &mMemory, &mReadCentric, &mWriteCentric);
 
 #ifdef DEBUG
-  std::cout << "==================" << std::endl;
+  std::cerr << "==================" << std::endl;
   for (auto readOwn : mReadCentric) {
     for (auto data : readOwn.second)
-      std::cout << readOwn.first << "\t" << data << std::endl;
+      std::cerr << readOwn.first << "\t" << data << std::endl;
   }
-  std::cout << "==================" << std::endl;
+  std::cerr << "==================" << std::endl;
   for (auto writeOwn : mWriteCentric) {
     for (auto data : writeOwn.second)
-      std::cout << writeOwn.first << "\t" << data << std::endl;
+      std::cerr << writeOwn.first << "\t" << data << std::endl;
   }
 #endif
 
