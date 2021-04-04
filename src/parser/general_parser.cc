@@ -28,12 +28,12 @@ void parseTrace(std::vector<TraceData>* vTraceData,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric) {
   // Iterate through all traces
   std::cerr << "[LOG]\tParsingFile..." << std::endl;
-#ifdef COUNTING
+#ifdef LOGGING
   int segCount = 0;
   int counter = 0;
 #endif
   for (auto trace : *vTraceData) {
-#ifdef COUNTING
+#ifdef LOGGING
     if (counter++ % 1000 == 0)
       std::cerr << "[LOG]\t" << segCount / 2048 << "MB data transfered"
                 << std::endl;  // segCount * 512 / 1024 / 1024
