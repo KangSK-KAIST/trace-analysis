@@ -77,7 +77,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         }
         // dead case (trace begin <= segment begin < segment end <= trace end)
         else if ((startTrace <= startSegment) && (endSegment <= endTrace)) {
-          dead.push_back(data.id);
+          dead.push_back(data.sLBA);
         }
         // tail case (trace begin <= segment begin < trace end < segment end)
         else if ((startTrace <= startSegment) && (startSegment < endTrace) &&
@@ -97,18 +97,17 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // Delete/Modify map
         data.sLBA = startSegment;
         data.nLB = startTrace - startSegment;
-        mMemory->erase(startSegment);
+        mMemory->erase(head);
         mMemory->insert(std::make_pair(startSegment, std::move(data)));
       }
       if (tail != -1) {
         // Read basic params
         TraceData data = (*mMemory)[tail];
-        addr_t startSegment = data.sLBA;
         addr_t endSegment = data.sLBA + data.nLB;
         // Delete/Modify map
         data.sLBA = endTrace;
         data.nLB = endSegment - endTrace;
-        mMemory->erase(startSegment);
+        mMemory->erase(tail);
         mMemory->insert(std::make_pair(endTrace, std::move(data)));
       }
       if (huge != -1) {
@@ -123,16 +122,12 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         dataHead.nLB = startTrace - startSegment;
         dataTail.sLBA = endTrace;
         dataTail.nLB = endSegment - endTrace;
-        mMemory->erase(startSegment);
+        mMemory->erase(huge);
         mMemory->insert(std::make_pair(startSegment, std::move(dataHead)));
         mMemory->insert(std::make_pair(endTrace, std::move(dataTail)));
       }
       for (auto id : dead) {
-        // Read basic params
-        TraceData data = (*mMemory)[id];
-        addr_t startSegment = data.sLBA;
-        // Delete/Modify map
-        mMemory->erase(startSegment);
+        mMemory->erase(id);
       }
       // Add new trace to map
       mMemory->insert(std::make_pair(trace.sLBA, trace));
