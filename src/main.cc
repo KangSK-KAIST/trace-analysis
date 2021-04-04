@@ -29,9 +29,9 @@ int main() {
   // std::string fileName(
   //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
   //     "Enterprise1.total.csv.orig");
-  // std::string fileName("/home/kangsk/gitrepo/trace-analysis/test.1M");
-  std::string fileName(
-      "/home/kangsk/gitrepo/trace-analysis/Enterprise1.total.csv.simple");
+  // std::string fileName(
+  //     "/home/kangsk/gitrepo/trace-analysis/Enterprise1.total.csv.simple");
+  std::string fileName("/home/kangsk/gitrepo/trace-analysis/test.20");
 
   std::vector<TraceData> vTraceData;
   std::cout << "Reading..." << std::endl;
@@ -54,6 +54,19 @@ int main() {
   parseTrace(&vTraceData, &mMemory, &mReadCentric, &mWriteCentric);
 
 #ifdef DEBUG
+  // std::cout << vTraceData[1530].sLBA << "\t" << vTraceData[1530].nLB << "\t"
+  //           << vTraceData[842].sLBA << "\t" << vTraceData[842].nLB <<
+  //           std::endl;
+  // std::cout << vTraceData[6570].sLBA << "\t" << vTraceData[6570].nLB << "\t"
+  //           << vTraceData[6486].sLBA << "\t" << vTraceData[6486].nLB
+  //           << std::endl;
+  // std::cout << vTraceData[6622].sLBA << "\t" << vTraceData[6622].nLB << "\t"
+  //           << vTraceData[5707].sLBA << "\t" << vTraceData[5707].nLB
+  //           << std::endl;
+  for (auto segment : mMemory) {
+    std::cout << segment.first << "\t" << segment.second.id << std::endl;
+  }
+  std::cout << "==================" << std::endl;
   for (auto readOwn : mReadCentric) {
     for (auto data : readOwn.second)
       std::cout << readOwn.first << "\t" << data << std::endl;

@@ -54,14 +54,14 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       }
     } else {
       // The trace is a write; apply segmentation
-      addr_t head = 0;
-      addr_t tail = 0;
-      addr_t huge = 0;
-      std::vector<addr_t> dead;  // Dead may be multiple
       // Read basic params
       addr_t startTrace = trace.sLBA;
       addr_t endTrace = trace.sLBA + trace.nLB;
-
+      // Cases to handle
+      addr_t head = -1;
+      addr_t tail = -1;
+      addr_t huge = -1;
+      std::vector<addr_t> dead;  // Dead may be multiple
       // Loop through memory segments
       for (auto segment : (*mMemory)) {
         // Read basic params
@@ -89,8 +89,8 @@ void parseTrace(std::vector<TraceData>* vTraceData,
           huge = data.id;
         }
       }
-      // Finished looping; Modify map
-      if (head) {
+      // Finished looping; modify map
+      if (head != -1) {
         // Read basic params
         TraceData data = (*vTraceData)[head];
         addr_t startSegment = data.sLBA;
@@ -100,7 +100,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         mMemory->erase(startSegment);
         mMemory->insert(std::make_pair(startSegment, std::move(data)));
       }
-      if (tail) {
+      if (tail != -1) {
         // Read basic params
         TraceData data = (*vTraceData)[tail];
         addr_t startSegment = data.sLBA;
@@ -111,7 +111,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         mMemory->erase(startSegment);
         mMemory->insert(std::make_pair(endTrace, std::move(data)));
       }
-      if (huge) {
+      if (huge != -1) {
         // Read basic params
         TraceData data = (*vTraceData)[huge];
         addr_t startSegment = data.sLBA;
@@ -119,7 +119,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // Delete/Modify map
         TraceData dataHead = data;
         TraceData dataTail = data;
-        dataHead.sLBA = startTrace;
+        dataHead.sLBA = startSegment;
         dataHead.nLB = startTrace - startSegment;
         dataTail.sLBA = endTrace;
         dataTail.nLB = endSegment - endTrace;
