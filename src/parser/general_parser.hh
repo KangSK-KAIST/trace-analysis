@@ -26,10 +26,6 @@
 #include "../includes/include.hh"
 #include "../includes/types.hh"
 
-void makeCentric(std::vector<TraceData>* vTraceData,
-                 std::map<id_t, std::vector<id_t>>* mReadCentric,
-                 std::map<id_t, std::vector<id_t>>* mWriteCentric);
-
 void parseTrace(std::vector<TraceData>* vTraceData,
                 std::map<id_t, std::vector<id_t>>* mReadCentric,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric);

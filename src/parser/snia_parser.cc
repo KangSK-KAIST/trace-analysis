@@ -1,22 +1,104 @@
-#include "snia_parser.hh"
+// MIT License
 
-void sort_trace(std::vector<TraceData> *vTraceData) {
-  std::sort(vTraceData->begin(), vTraceData->end(),
-            [](TraceData const &a, TraceData const &b) -> bool {
-              // First look at op type; write first
-              if (!a.isRead && b.isRead) return true;
-              if (a.isRead && !b.isRead) return false;
-              // Second look at time; early first
-              if (a.sec != b.sec) return a.sec < b.sec;
-              if (a.usec != b.usec) return a.usec < b.usec;
-              // Third look at address; lower address first
-              if (a.sLBA != b.sLBA) return a.sLBA < b.sLBA;
-              // Last look at size; larger first
-              if (a.nLB != b.nLB) return a.nLB > b.nLB;
-            });
-}
+// Copyright (c) 2021 KangSK-KAIST
 
-int parse_trace(std::vector<TraceData> *vTraceData) {
-  sort_trace(vTraceData);
-  return 0;
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#include "general_parser.hh"
+
+void parseTrace(std::vector<TraceData>* vTraceData,
+                std::map<id_t, std::vector<id_t>>* mReadCentric,
+                std::map<id_t, std::vector<id_t>>* mWriteCentric) {
+  // Simulate the whole memory as a map
+  std::map<addr_t, TraceData> memory;
+
+  // Iterate through all traces
+  for (auto trace : *vTraceData) {
+    if (trace.isRead) {
+      // The trace is a read; insert all owners
+      std::vector<id_t> owners;
+      for (auto segment : memory) {
+        std::cout << segment.first << std::endl;
+        // Loop through memory segments
+        addr_t startTrace = trace.sLBA;
+        addr_t endTrace = trace.sLBA + trace.nLB;
+        addr_t startSegment = segment.first;
+        addr_t endSegment = segment.first + segment.second.nLB;
+        // If start of segment is larger than end of trace, break
+        if (endTrace <= startSegment) break;
+        // If segment and trace overlap, add to owner
+        if ((startTrace < endSegment) && (startSegment < endTrace)) {
+          owners.push_back(segment.second.id);
+        }
+      }
+      // std::cout << owners.empty() << std::endl;
+      if (!owners.empty()) {
+        // Existed owner; add to read centric map
+        mReadCentric->insert(std::make_pair(trace.id, std::move(owners)));
+        // TODO Add to all write centric map
+      }
+    } else {
+      // The trace is a write; apply segmentation
+      for (auto segment : memory) {
+        // std::cout << segment.first << std::endl;
+        // Loop through memory segments
+        addr_t startTrace = trace.sLBA;
+        addr_t endTrace = trace.sLBA + trace.nLB;
+        addr_t startSegment = segment.first;
+        addr_t endSegment = segment.first + segment.second.nLB;
+        TraceData data = segment.second;
+        // If start of segment is larger than end of trace, break
+        if (endTrace <= startSegment) break;
+        // head case (segment begin < trace begin < segment end <= trace end)
+        if ((startSegment < startTrace) && (startTrace < endSegment) &&
+            (endSegment <= endTrace)) {
+          data.sLBA = startSegment;
+          data.nLB = startTrace - startSegment;
+          memory.erase(startSegment);
+          memory.insert(std::make_pair(startSegment, std::move(data)));
+        }
+        // dead case (trace begin <= segment begin < segment end <= trace end)
+        else if ((startTrace <= startSegment) && (endSegment <= endTrace)) {
+          memory.erase(startSegment);
+        }
+        // tail case (trace begin <= segment begin < trace end < segment end)
+        else if ((startTrace <= startSegment) && (startSegment < endTrace) &&
+                 (endTrace < endSegment)) {
+          data.sLBA = endTrace;
+          data.nLB = endSegment - endTrace;
+          memory.erase(startSegment);
+          memory.insert(std::make_pair(endTrace, std::move(data)));
+        }
+        // huge case (segment begin < trace begin < trace end < segment end)
+        else if ((startSegment < startTrace) && (endTrace < endSegment)) {
+          TraceData dataHead = data;
+          TraceData dataTail = data;
+          dataHead.sLBA = startTrace;
+          dataHead.nLB = startTrace - startSegment;
+          dataTail.sLBA = endTrace;
+          dataTail.nLB = endSegment - endTrace;
+          memory.erase(startSegment);
+          memory.insert(std::make_pair(startSegment, std::move(dataHead)));
+          memory.insert(std::make_pair(endTrace, std::move(dataTail)));
+        }
+      }
+      memory.insert(std::make_pair(trace.sLBA, trace));
+    }
+  }
 }

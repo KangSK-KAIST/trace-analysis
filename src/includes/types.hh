@@ -56,5 +56,6 @@ struct TraceData {
 };
 
 typedef uint32_t id_t;
+typedef uint64_t addr_t;
 
 #endif  // __INCLUDES_TYPES_HH_

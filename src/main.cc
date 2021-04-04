@@ -29,19 +29,35 @@ int main() {
   // std::string fileName(
   //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
   //     "Enterprise1.total.csv.orig");
+  // std::string fileName("/home/kangsk/gitrepo/trace-analysis/test.1M");
   std::string fileName(
       "/home/kangsk/gitrepo/trace-analysis/Enterprise1.total.csv.simple");
+
   std::vector<TraceData> vTraceData;
+  std::cout << "Reading..." << std::endl;
   read_trace(fileName, &vTraceData);
 
-  // Debug code
+#ifdef DEBUG
   int count = 0;
-  for (auto iter = vTraceData.begin();; iter++) {
-    std::cout << iter->id << " " << iter->usec << " " << iter->sLBA
-              << std::endl;
-    if (count++ > 20) break;
+  for (auto iter = vTraceData.begin(); count++ < 20; iter++) {
+    std::cout << iter->id << " " << iter->usec << " " << iter->sLBA << " "
+              << iter->isRead << std::endl;
   }
-  parse_trace();
+#endif
+  std::cout << "Parsing..." << std::endl;
+
+  // <Read time, Write time>, <Write time, Read time>
+  std::map<id_t, std::vector<id_t>> mReadCentric;
+  std::map<id_t, std::vector<id_t>> mWriteCentric;
+  parseTrace(&vTraceData, &mReadCentric, &mWriteCentric);
+
+#ifdef DEBUG
+  for (auto readOwn : mReadCentric) {
+    for (auto data : readOwn.second)
+      std::cout << readOwn.first << "\t" << data << std::endl;
+  }
+#endif
+
   // save_pickle();
   // analyze_trace();
   return 0;
