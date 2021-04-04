@@ -25,24 +25,29 @@
 #include "includes/types.hh"
 #include "parser/general_parser.hh"
 #include "reader/general_reader.hh"
+#include "saver/general_saver.hh"
 
 int main(int argc, char** argv) {
   // std::string fileName(
   //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
   //     "Enterprise1.total.csv.orig");
   if (argc < 3) {
-    std::cerr << "Usage: main [input filename] [size of transfer (in MB)]"
+    std::cerr << "Usage: main [input filename] [size of transfer (in "
+                 "MB)]/[output filename]"
               << std::endl;
     std::terminate();
   }
 
   std::string fileName(argv[1]);
+#ifndef COMPRESSER
   std::string sizeInput(argv[2]);
   int32_t size = strtoul(sizeInput.c_str(), nullptr, 10);
-
+#else
+  std::string fileOutName(argv[2]);
+#endif
   std::vector<TraceData> vTraceData;
   printStat(fileName);
-  readTrace(fileName, &vTraceData, size);
+  readTrace(fileName, &vTraceData);
 
 #ifdef DEBUG
   int count = 0;
@@ -72,9 +77,10 @@ int main(int argc, char** argv) {
   }
 #endif
 
+#ifndef COMPRESSER
   analyze(&vTraceData, &mReadCentric, &mWriteCentric);
-
-  // save_pickle();
-  // analyze_trace();
+#else
+  saveTrace(fileOutName, &vTraceData, &mReadCentric);
+#endif
   return 0;
 }
