@@ -26,9 +26,9 @@ void parseTrace(std::vector<TraceData>* vTraceData,
                 std::map<addr_t, TraceData>* mMemory,
                 std::map<id_t, std::vector<id_t>>* mReadCentric,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric) {
-  // Iterate through all traces
-  std::cerr << "[LOG]\tParsingFile..." << std::endl;
+// Iterate through all traces
 #ifdef LOGGING
+  std::cerr << "[LOG]\tParsingFile..." << std::endl;
   int segCount = 0;
   int counter = 0;
 #endif

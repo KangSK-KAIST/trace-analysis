@@ -23,14 +23,17 @@
 #include "general_reader.hh"
 
 void printStat(std::string fileName) {
+#ifdef LOGGING
   std::cerr << "[LOG]\tPrinting File Stat..." << std::endl;
+#endif
   std::cout << "FileName:\t" << fileName << std::endl;
 }
 
 void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
                int32_t size) {
+#ifdef LOGGING
   std::cerr << "[LOG]\tReading File..." << std::endl;
-
+#endif
   std::ifstream file(fileName);
   if (!file.is_open()) {
     std::cerr << "[ERROR]\tFile open error" << std::endl;
