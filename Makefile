@@ -1,14 +1,15 @@
 CC := clang++-7
-CCFLAGS := -Wall -Werror -O0 -g -D_FORTIFY_SOURCE=2 -DDEBUG
-# CCFLAGS := -O2 -Wdocumentation
+CCFLAGS := -Wall -Werror -O0 -g -D_FORTIFY_SOURCE=2 -DDEBUG -DCOUNTING
+# CCFLAGS := -O2 -DCOUNTING
 
 .PHONY: all
 all: main
 
 include src/reader/makefile.mk
 include src/parser/makefile.mk
+include src/analyzer/makefile.mk
 
-main: src/main.cc build/reader.o build/parser.o
+main: src/main.cc build/reader.o build/parser.o build/analyzer.o
 	$(CC) $(CCFLAGS) -o build/main $^
 
 .PHONY: clean

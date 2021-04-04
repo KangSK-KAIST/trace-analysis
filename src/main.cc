@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "analyzer/general_analyzer.hh"
 #include "includes/include.hh"
 #include "includes/types.hh"
 #include "parser/general_parser.hh"
@@ -70,6 +71,8 @@ int main(int argc, char** argv) {
       std::cout << writeOwn.first << "\t" << data << std::endl;
   }
 #endif
+
+  analyze(&vTraceData, &mReadCentric, &mWriteCentric);
 
   // save_pickle();
   // analyze_trace();
