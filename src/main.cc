@@ -46,10 +46,12 @@ int main() {
 #endif
   std::cout << "Parsing..." << std::endl;
 
+  // Simulate the whole memory as a map
+  std::map<addr_t, TraceData> mMemory;
   // <Read time, Write time>, <Write time, Read time>
   std::map<id_t, std::vector<id_t>> mReadCentric;
   std::map<id_t, std::vector<id_t>> mWriteCentric;
-  parseTrace(&vTraceData, &mReadCentric, &mWriteCentric);
+  parseTrace(&vTraceData, &mMemory, &mReadCentric, &mWriteCentric);
 
 #ifdef DEBUG
   for (auto readOwn : mReadCentric) {

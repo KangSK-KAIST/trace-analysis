@@ -23,18 +23,17 @@
 #include "general_parser.hh"
 
 void parseTrace(std::vector<TraceData>* vTraceData,
+                std::map<addr_t, TraceData>* mMemory,
                 std::map<id_t, std::vector<id_t>>* mReadCentric,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric) {
-  // Simulate the whole memory as a map
-  std::map<addr_t, TraceData> memory;
-
   // Iterate through all traces
   for (auto trace : *vTraceData) {
     if (trace.isRead) {
       // The trace is a read; insert all owners
       std::vector<id_t> owners;
-      for (auto segment : memory) {
-        // Loop through memory segments
+      // Loop through memory segments
+      for (auto segment : (*mMemory)) {
+        // Read basic params
         addr_t startTrace = trace.sLBA;
         addr_t endTrace = trace.sLBA + trace.nLB;
         addr_t startSegment = segment.first;
@@ -63,7 +62,7 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       addr_t endTrace = trace.sLBA + trace.nLB;
 
       // Loop through memory segments
-      for (auto segment : memory) {
+      for (auto segment : (*mMemory)) {
         // Read basic params
         addr_t startSegment = segment.first;
         addr_t endSegment = segment.first + segment.second.nLB;
@@ -97,8 +96,8 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // Delete/Modify map
         data.sLBA = startSegment;
         data.nLB = startTrace - startSegment;
-        memory.erase(startSegment);
-        memory.insert(std::make_pair(startSegment, std::move(data)));
+        mMemory->erase(startSegment);
+        mMemory->insert(std::make_pair(startSegment, std::move(data)));
       }
       if (tail) {
         // Read basic params
@@ -108,8 +107,8 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         // Delete/Modify map
         data.sLBA = endTrace;
         data.nLB = endSegment - endTrace;
-        memory.erase(startSegment);
-        memory.insert(std::make_pair(endTrace, std::move(data)));
+        mMemory->erase(startSegment);
+        mMemory->insert(std::make_pair(endTrace, std::move(data)));
       }
       if (huge) {
         // Read basic params
@@ -123,19 +122,19 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         dataHead.nLB = startTrace - startSegment;
         dataTail.sLBA = endTrace;
         dataTail.nLB = endSegment - endTrace;
-        memory.erase(startSegment);
-        memory.insert(std::make_pair(startSegment, std::move(dataHead)));
-        memory.insert(std::make_pair(endTrace, std::move(dataTail)));
+        mMemory->erase(startSegment);
+        mMemory->insert(std::make_pair(startSegment, std::move(dataHead)));
+        mMemory->insert(std::make_pair(endTrace, std::move(dataTail)));
       }
       for (auto id : dead) {
         // Read basic params
         TraceData data = (*vTraceData)[id];
         addr_t startSegment = data.sLBA;
         // Delete/Modify map
-        memory.erase(startSegment);
+        mMemory->erase(startSegment);
       }
       // Add new trace to map
-      memory.insert(std::make_pair(trace.sLBA, trace));
+      mMemory->insert(std::make_pair(trace.sLBA, trace));
     }
   }
 }

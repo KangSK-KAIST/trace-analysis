@@ -27,6 +27,7 @@
 #include "../includes/types.hh"
 
 void parseTrace(std::vector<TraceData>* vTraceData,
+                std::map<addr_t, TraceData>* mMemory,
                 std::map<id_t, std::vector<id_t>>* mReadCentric,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric);
 
