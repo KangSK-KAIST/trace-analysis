@@ -38,6 +38,6 @@ void analyze(std::vector<TraceData>* vTraceData,
   analyzeDependTypes(vTraceData, mWriteCentric, false, &indepWrites,
                      &depShortWrites, &depLongWrites);
   std::cout << "[Write BD]\tIndependent\tDep_Short\tDep_Long" << std::endl;
-  std::cout << "\t" << indepReads << "\t" << depShortReads << "\t"
-            << depLongReads << std::endl;
+  std::cout << "\t" << indepWrites << "\t" << depShortWrites << "\t"
+            << depLongWrites << std::endl;
 }
