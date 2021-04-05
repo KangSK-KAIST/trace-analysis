@@ -22,6 +22,25 @@
 
 #include "general_analyzer.hh"
 
+/**
+ * @brief Counts number of each occurences; indep/single/multi
+ *
+ * @param vTraceData (pointer) vector of trace data
+ * @param mCentric (pointer) map of read or write centric
+ * @param isRead whether to analyze read or write traces
+ * @param indep (pointer) number of independent traces
+ * @param depShort (pointer) number of single dependent traces
+ * @param depLong (pointer) number of multiple dependent traces
+ *
+ * @note Independent traces are read/write traces that are reading/writing from
+ * addresses never written/read by others.
+ * Single dependent traces are read/write traces thar are reading/writing from
+ * addresses (written by one)/(read once) by others.
+ * Multiple dependent traces are read/write traces thar are reading/writing from
+ * addresses (written by multiple)/(read multiple times) multiply by others,
+ * where written multiply means it is reading from a segmented range of address,
+ * not meaning hotspot.
+ */
 static void analyzeDependTypes(std::vector<TraceData>* vTraceData,
                                std::map<id_t, std::set<id_t>>* mCentric,
                                bool isRead, int32_t* indep, int32_t* depShort,
