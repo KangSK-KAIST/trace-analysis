@@ -62,6 +62,7 @@ void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax) {
 #ifdef LOGGGING
   std::cerr << "[LOG]\tTotal " << totalBytes << " bytes in trace." << std::endl;
 #endif
+  std::cout << "Total transfer size in bytes\t" << totalBytes << std::endl;
   file.close();
 }
 
