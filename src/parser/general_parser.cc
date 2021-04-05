@@ -23,9 +23,8 @@
 #include "general_parser.hh"
 
 void parseTrace(std::vector<TraceData>* vTraceData, TraceData** aMemory,
-                int64_t pageMin,
-                std::map<id_t, std::vector<id_t>>* mReadCentric,
-                std::map<id_t, std::vector<id_t>>* mWriteCentric) {
+                int64_t pageMin, std::map<id_t, std::set<id_t>>* mReadCentric,
+                std::map<id_t, std::set<id_t>>* mWriteCentric) {
 // Iterate through all traces
 #ifdef LOGGING
   std::cerr << "[LOG]\tParsingFile..." << std::endl;
@@ -41,7 +40,7 @@ void parseTrace(std::vector<TraceData>* vTraceData, TraceData** aMemory,
 #endif
     if (trace.isRead) {
       // The trace is a read; insert all owners
-      std::vector<id_t> owners;
+      std::set<id_t> owners;
       if (!owners.empty()) std::terminate();
 
       // Read basic params (in page-level mapping)
@@ -53,18 +52,18 @@ void parseTrace(std::vector<TraceData>* vTraceData, TraceData** aMemory,
         TraceData data = (*aMemory)[i];
         if ((data.sec == 0) && (data.psec == 0))
           continue;  // First access to this page
-        owners.push_back(data.id);
+        owners.insert(data.id);
       }
       if (!owners.empty()) {
         // Add to all write centric map
         for (auto owner : owners) {
-          std::vector<id_t> users;
+          std::set<id_t> users;
           if (mWriteCentric->count(owner)) {
             // This owner was already used
             users = (*mWriteCentric)[owner];
             mWriteCentric->erase(owner);
           }
-          users.push_back(trace.id);
+          users.insert(trace.id);
           mWriteCentric->insert(std::make_pair(owner, std::move(users)));
         }
         // Existed owner; add to read centric map

@@ -27,8 +27,7 @@
 #include "../includes/types.hh"
 
 void parseTrace(std::vector<TraceData>* vTraceData, TraceData** aMemory,
-                int64_t pageMin,
-                std::map<id_t, std::vector<id_t>>* mReadCentric,
-                std::map<id_t, std::vector<id_t>>* mWriteCentric);
+                int64_t pageMin, std::map<id_t, std::set<id_t>>* mReadCentric,
+                std::map<id_t, std::set<id_t>>* mWriteCentric);
 
 #endif  // __PARSER_GENERAL_PARSER_HH_

@@ -71,8 +71,8 @@ int main(int argc, char** argv) {
   TraceData* aMemory = new TraceData[pageNum];
 
   // <Read time, Write time>, <Write time, Read time>
-  std::map<id_t, std::vector<id_t>> mReadCentric;
-  std::map<id_t, std::vector<id_t>> mWriteCentric;
+  std::map<id_t, std::set<id_t>> mReadCentric;
+  std::map<id_t, std::set<id_t>> mWriteCentric;
   parseTrace(&vTraceData, &aMemory, pageMin, &mReadCentric, &mWriteCentric);
 
 #ifdef DEBUG

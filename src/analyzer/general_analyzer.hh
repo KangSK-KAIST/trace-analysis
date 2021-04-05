@@ -5,7 +5,7 @@
 #include "../includes/types.hh"
 
 void analyze(std::vector<TraceData>* vTraceData,
-             std::map<id_t, std::vector<id_t>>* mReadCentric,
-             std::map<id_t, std::vector<id_t>>* mWriteCentric);
+             std::map<id_t, std::set<id_t>>* mReadCentric,
+             std::map<id_t, std::set<id_t>>* mWriteCentric);
 
 #endif  //__GENENERAL_ANALYZER_HH_
