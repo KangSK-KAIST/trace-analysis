@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
   std::map<id_t, std::set<id_t>> mReadCentric;
   std::map<id_t, std::set<id_t>> mWriteCentric;
   parseTrace(&vTraceData, &aMemory, pageMin, &mReadCentric, &mWriteCentric);
+  delete[] aMemory;
 
 #ifdef DEBUG
   std::cerr << "==================" << std::endl;
@@ -93,8 +94,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  analyze(&vTraceData, &mReadCentric, &mWriteCentric);
+  analyze(&vTraceData, pageNum, &mReadCentric, &mWriteCentric);
   // saveTrace(fileOutName, &vTraceData, &mReadCentric);
-  delete[] aMemory;
   return 0;
 }
