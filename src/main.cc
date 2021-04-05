@@ -61,14 +61,19 @@ int main(int argc, char** argv) {
 
 #ifdef DEBUG
   int count = 0;
-  for (auto iter = vTraceData.begin(); count++ < 20; iter++) {
-    std::cerr << iter->id << " " << iter->psec << " " << iter->sLBA << " "
-              << iter->isRead << std::endl;
+  std::cerr << "[LOG] Top 5 traces" << std::endl;
+  for (auto iter = vTraceData.begin(); count++ < 5; iter++) {
+    std::cerr << "\t" << iter->id << " " << iter->psec << " " << iter->sLBA
+              << " " << iter->isRead << std::endl;
   }
 #endif
 
   // Simulate the whole memory as an array of all pages
   TraceData* aMemory = new TraceData[pageNum];
+  TraceData cleanData = {0, 0, 0, 0, 0, false};
+  for (int i = 0; i < pageNum; i++) {
+    aMemory[i] = cleanData;
+  }
 
   // <Read time, Write time>, <Write time, Read time>
   std::map<id_t, std::set<id_t>> mReadCentric;
@@ -90,5 +95,6 @@ int main(int argc, char** argv) {
 
   analyze(&vTraceData, &mReadCentric, &mWriteCentric);
   // saveTrace(fileOutName, &vTraceData, &mReadCentric);
+  delete[] aMemory;
   return 0;
 }
