@@ -67,12 +67,13 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  // Simulate the whole memory as a map
-  std::map<addr_t, TraceData> mMemory;
+  // Simulate the whole memory as an array of all pages
+  TraceData* aMemory = new TraceData[pageNum];
+
   // <Read time, Write time>, <Write time, Read time>
   std::map<id_t, std::vector<id_t>> mReadCentric;
   std::map<id_t, std::vector<id_t>> mWriteCentric;
-  parseTrace(&vTraceData, &mMemory, &mReadCentric, &mWriteCentric);
+  parseTrace(&vTraceData, &aMemory, pageMin, &mReadCentric, &mWriteCentric);
 
 #ifdef DEBUG
   std::cerr << "==================" << std::endl;

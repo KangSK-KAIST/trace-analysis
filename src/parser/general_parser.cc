@@ -22,8 +22,8 @@
 
 #include "general_parser.hh"
 
-void parseTrace(std::vector<TraceData>* vTraceData,
-                std::map<addr_t, TraceData>* mMemory,
+void parseTrace(std::vector<TraceData>* vTraceData, TraceData** aMemory,
+                int64_t pageMin,
                 std::map<id_t, std::vector<id_t>>* mReadCentric,
                 std::map<id_t, std::vector<id_t>>* mWriteCentric) {
 // Iterate through all traces
@@ -44,19 +44,16 @@ void parseTrace(std::vector<TraceData>* vTraceData,
       std::vector<id_t> owners;
       if (!owners.empty()) std::terminate();
 
-      // Loop through memory segments
-      for (auto segment : (*mMemory)) {
-        // Read basic params
-        addr_t startTrace = trace.sLBA;
-        addr_t endTrace = trace.sLBA + trace.nLB;
-        addr_t startSegment = segment.first;
-        addr_t endSegment = segment.first + segment.second.nLB;
-        // If start of segment is larger than end of trace, break
-        if (endTrace <= startSegment) break;
-        // If segment and trace overlap, add to owner
-        if ((startTrace < endSegment) && (startSegment < endTrace)) {
-          owners.push_back(segment.second.id);
-        }
+      // Read basic params (in page-level mapping)
+      page_t startTrace = trace.sLBA / PAGE_SIZE - pageMin;
+      page_t endTrace = (trace.sLBA + trace.nLB) / PAGE_SIZE - pageMin;
+      // Read through all passing pages
+      for (int64_t i = startTrace; i <= endTrace; i++) {
+        // Push back the owner of the page
+        TraceData data = (*aMemory)[i];
+        if ((data.sec == 0) && (data.psec == 0))
+          continue;  // First access to this page
+        owners.push_back(data.id);
       }
       if (!owners.empty()) {
         // Add to all write centric map
@@ -74,84 +71,15 @@ void parseTrace(std::vector<TraceData>* vTraceData,
         mReadCentric->insert(std::make_pair(trace.id, std::move(owners)));
       }
     } else {
-      // The trace is a write; apply segmentation
-      // Read basic params
-      addr_t startTrace = trace.sLBA;
-      addr_t endTrace = trace.sLBA + trace.nLB;
-      // Cases to handle
-      addr_t head = -1;
-      addr_t tail = -1;
-      addr_t huge = -1;
-      std::vector<addr_t> dead;  // Dead may be multiple
-      // Loop through memory segments
-      for (auto segment : (*mMemory)) {
-        // Read basic params
-        addr_t startSegment = segment.first;
-        addr_t endSegment = segment.first + segment.second.nLB;
-        TraceData data = segment.second;
-        // If start of segment is larger than end of trace, break
-        if (endTrace <= startSegment) break;
-        // head case (segment begin < trace begin < segment end <= trace end)
-        if ((startSegment < startTrace) && (startTrace < endSegment) &&
-            (endSegment <= endTrace)) {
-          head = data.sLBA;
-        }
-        // dead case (trace begin <= segment begin < segment end <= trace end)
-        else if ((startTrace <= startSegment) && (endSegment <= endTrace)) {
-          dead.push_back(data.sLBA);
-        }
-        // tail case (trace begin <= segment begin < trace end < segment end)
-        else if ((startTrace <= startSegment) && (startSegment < endTrace) &&
-                 (endTrace < endSegment)) {
-          tail = data.sLBA;
-        }
-        // huge case (segment begin < trace begin < trace end < segment end)
-        else if ((startSegment < startTrace) && (endTrace < endSegment)) {
-          huge = data.sLBA;
-        }
+      // The trace is a write; overwrite
+      // Read basic params (in page-level mapping)
+      page_t startTrace = trace.sLBA / PAGE_SIZE - pageMin;
+      page_t endTrace = (trace.sLBA + trace.nLB) / PAGE_SIZE - pageMin;
+      // Read through all passing pages
+      for (int64_t i = startTrace; i <= endTrace; i++) {
+        // Overwrite all pages
+        (*aMemory)[i] = trace;
       }
-      // Finished looping; modify map
-      if (head != -1) {
-        // Read basic params
-        TraceData data = (*mMemory)[head];
-        addr_t startSegment = data.sLBA;
-        // Delete/Modify map
-        data.sLBA = startSegment;
-        data.nLB = startTrace - startSegment;
-        mMemory->erase(head);
-        mMemory->insert(std::make_pair(startSegment, std::move(data)));
-      }
-      if (tail != -1) {
-        // Read basic params
-        TraceData data = (*mMemory)[tail];
-        addr_t endSegment = data.sLBA + data.nLB;
-        // Delete/Modify map
-        data.sLBA = endTrace;
-        data.nLB = endSegment - endTrace;
-        mMemory->erase(tail);
-        mMemory->insert(std::make_pair(endTrace, std::move(data)));
-      }
-      if (huge != -1) {
-        // Read basic params
-        TraceData data = (*mMemory)[huge];
-        addr_t startSegment = data.sLBA;
-        addr_t endSegment = data.sLBA + data.nLB;
-        // Delete/Modify map
-        TraceData dataHead = data;
-        TraceData dataTail = data;
-        dataHead.sLBA = startSegment;
-        dataHead.nLB = startTrace - startSegment;
-        dataTail.sLBA = endTrace;
-        dataTail.nLB = endSegment - endTrace;
-        mMemory->erase(huge);
-        mMemory->insert(std::make_pair(startSegment, std::move(dataHead)));
-        mMemory->insert(std::make_pair(endTrace, std::move(dataTail)));
-      }
-      for (auto id : dead) {
-        mMemory->erase(id);
-      }
-      // Add new trace to map
-      mMemory->insert(std::make_pair(trace.sLBA, trace));
     }
   }
 }

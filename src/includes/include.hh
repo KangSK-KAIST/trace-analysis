@@ -35,4 +35,6 @@
 #include <string>
 #include <vector>
 
+#define PAGE_SIZE 4096
+
 #endif  // __INCLUDES_INCLUDE_HH_
