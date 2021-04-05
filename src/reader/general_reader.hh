@@ -26,9 +26,9 @@
 #include "../includes/include.hh"
 #include "../includes/types.hh"
 
+void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax);
 void printStat(std::string fileName);
 void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
                int32_t size);
-void readTrace(std::string fileName, std::vector<TraceData> *vTraceData);
 
 #endif  // __READER_RAW_FILE_READER_HH

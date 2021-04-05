@@ -22,6 +22,54 @@
 
 #include "general_reader.hh"
 
+std::smatch match;
+std::regex regexTrace("([0-9]+)\\.([0-9]+) ([a-zA-Z]+) ([0-9]+) ([0-9]+)");
+
+/**
+ * @brief Scan through trace and read min/max page no.
+ *
+ * @param fileName path of the trace file
+ * @param pageMin (pointer) minimun page number
+ * @param pageMax (pointer) maximum page number
+ */
+void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax) {
+#ifdef LOGGING
+  std::cerr << "[LOG]\tScanning File..." << std::endl;
+#endif
+  std::ifstream file(fileName);
+  if (!file.is_open()) {
+    std::cerr << "[ERROR]\tFile open error" << std::endl;
+    std::terminate();
+  }
+
+  int64_t totalBytes = 0;
+  std::string line;
+  while (std::getline(file, line)) {
+    if (!std::regex_match(line, match, regexTrace)) {
+      std::cerr << "[ERROR]\tRegex-match error" << std::endl;
+      std::terminate();
+    }
+    // snia is in sector ( page = sector * 512 / 4096)
+    int64_t addr = strtoull(match[4].str().c_str(), nullptr, 10) * 512;
+    int64_t size = strtoul(match[5].str().c_str(), nullptr, 10) * 512;
+    int64_t pageStart = addr / PAGE_SIZE;
+    int64_t pageEnd = (addr + size) / PAGE_SIZE;
+    *pageMin = (*pageMin > pageStart) ? pageStart : *pageMin;
+    *pageMax = (*pageMax < pageEnd) ? pageEnd : *pageMax;
+
+    totalBytes += size;
+  }
+#ifdef LOGGGING
+  std::cerr << "[LOG]\tTotal " << totalBytes << " bytes in trace." << std::endl;
+#endif
+  file.close();
+}
+
+/**
+ * @brief Prints simple stats about the file
+ *
+ * @param fileName
+ */
 void printStat(std::string fileName) {
 #ifdef LOGGING
   std::cerr << "[LOG]\tPrinting File Stat..." << std::endl;
@@ -29,6 +77,13 @@ void printStat(std::string fileName) {
   std::cout << "FileName:\t" << fileName << std::endl;
 }
 
+/**
+ * @brief Reads traces, parse it and make a vector of them
+ *
+ * @param fileName path of the trace file
+ * @param vTraceData (pointer) vector of all traces, sorted in order
+ * @param size size of transfer to read | 0 if full read
+ */
 void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
                int32_t size) {
 #ifdef LOGGING
@@ -42,10 +97,9 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
 
   std::string line;
   TraceData td;
-  uint64_t bytesToRead = (uint64_t)size * 1024 * 1024;  // size * 1024 * 1024
 
-  std::smatch match;
-  std::regex regexTrace("([0-9]+)\\.([0-9]+) ([a-zA-Z]+) ([0-9]+) ([0-9]+)");
+  bool isFullRead = (size == 0);
+  uint64_t bytesToRead = (uint64_t)size * 1024 * 1024;  // size * 1024 * 1024
 
   while (std::getline(file, line)) {
     if (!std::regex_match(line, match, regexTrace)) {
@@ -60,8 +114,10 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
               512;  // snia is in sectors
     td.nLB = strtoul(match[5].str().c_str(), nullptr, 10) *
              512;  // snia is in sectors
-    if (bytesToRead < (uint64_t)td.nLB) break;
-    bytesToRead -= (uint64_t)td.nLB;
+    if (!isFullRead) {
+      if (bytesToRead < (uint64_t)td.nLB) break;
+      bytesToRead -= (uint64_t)td.nLB;
+    }
     vTraceData->push_back(std::move(td));
   }
 

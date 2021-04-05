@@ -33,24 +33,31 @@ int main(int argc, char** argv) {
   // std::string fileName(
   //     "/home/kangsk/gitrepo/trace-analysis/snia_refined/MSEnterprise/"
   //     "Enterprise1.total.csv.orig");
-  // if (argc < 3) {
-  //   std::cerr << "Usage: main [input filename] [size of transfer (in "
-  //                "MB)]/[output filename]"
-  //             << std::endl;
-  //   std::terminate();
-  // }
+  if (argc < 3) {
+    std::cerr << "Usage: main [input filename] [size of transfer (in "
+                 "MB) (0 if full read)]"
+              << std::endl;
+    std::terminate();
+  }
 
   std::string fileName(argv[1]);
-#ifndef COMPRESSER
   std::string sizeInput(argv[2]);
   int32_t size = strtoul(sizeInput.c_str(), nullptr, 10);
-#else
-  // std::string fileOutName(argv[2]);
-  std::string fileOutName = "";
+
+  int64_t pageMin = 0;
+  int64_t pageMax = 0;
+  scanTrace(fileName, &pageMin, &pageMax);
+  int64_t pageNum = pageMax - pageMin + 1;
+
+#ifdef LOGGING
+  std::cerr << "[LOG]\tMinimum page: " << pageMin
+            << ", Maximum page: " << pageMax << ", Total " << pageNum
+            << " pages" << std::endl;
 #endif
+
   std::vector<TraceData> vTraceData;
   printStat(fileName);
-  readTrace(fileName, &vTraceData);
+  readTrace(fileName, &vTraceData, size);
 
 #ifdef DEBUG
   int count = 0;
