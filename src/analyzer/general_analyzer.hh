@@ -26,7 +26,7 @@
 #include "../includes/include.hh"
 #include "../includes/types.hh"
 
-void analyze(std::vector<TraceData>* vTraceData,
+void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
              std::map<id_t, std::set<id_t>>* mReadCentric,
              std::map<id_t, std::set<id_t>>* mWriteCentric);
 

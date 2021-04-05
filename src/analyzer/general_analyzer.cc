@@ -59,7 +59,76 @@ static void analyzeDependTypes(std::vector<TraceData>* vTraceData,
   }
 }
 
-void analyze(std::vector<TraceData>* vTraceData,
+/**
+ * @brief Counts all hot writes in page-level
+ *
+ * @param vTraceData (pointer) vector of traces
+ * @param mWriteCentric (pointer) write centric map
+ *
+ * @note Hot writes means the data written by the write was read by other reads.
+ * The function iterates through all hot writes and the pages they wrote, and
+ * count the number of occurances of which the data was read by another request.
+ * This is done in a page-specific manner, which hereby results in the number of
+ * reads each pages experience before overwritten.
+ */
+static void analyzeHotWrite(std::vector<TraceData>* vTraceData,
+                            std::map<id_t, std::set<id_t>>* mWriteCentric) {
+  std::vector<uint32_t> readCountsTotal;
+  for (auto write : *mWriteCentric) {
+    // Iterate for all writes that are read at least once
+    // Read basic parameters
+    int64_t pageStart = (*vTraceData)[write.first].sLBA / PAGE_SIZE;
+    int64_t pageEnd =
+        ((*vTraceData)[write.first].sLBA + (*vTraceData)[write.first].nLB) /
+        PAGE_SIZE;
+    int64_t pageNum = pageEnd - pageStart + 1;
+
+    // Simulate a small segemnt of memory as page array
+    int32_t* readCounts = new int32_t[pageNum];
+    for (int i = 0; i < pageNum; i++) {
+      readCounts[i] = 0;
+    }
+
+    // Iterate for all reads that read the pages
+    for (auto read : write.second) {
+      int64_t readStartReal = (*vTraceData)[read].sLBA / PAGE_SIZE;
+      int64_t readEndReal =
+          ((*vTraceData)[read].sLBA + (*vTraceData)[read].nLB) / PAGE_SIZE;
+      // Read might start earilier, end later than write
+      int64_t readStartOverlap = std::max(pageStart, readStartReal);
+      int64_t readEndOverlap = std::min(pageEnd, readEndReal);
+      // Calculate offset of read request in page count
+      int64_t readOffset = readStartOverlap - pageStart;
+      int64_t readNum = readEndOverlap - readStartOverlap + 1;
+      // Iterate for overlapping pages
+      for (int i = 0; i < readNum; i++) {
+        readCounts[readOffset + i]++;
+      }
+    }
+    // Finished simulation; append to total vector
+    for (int i = 0; i < pageNum; i++) {
+      readCountsTotal.push_back(readCounts[i]);
+    }
+    delete[] readCounts;
+  }
+  // Count each numbers for better reading
+  std::map<int32_t, int64_t> countDuplicate;
+  std::for_each(readCountsTotal.begin(), readCountsTotal.end(),
+                [&countDuplicate](int val) { countDuplicate[val]++; });
+
+  // Finished all analysis; print data
+  std::cout << "[HotWrite]" << std::endl;
+  for (auto hot : countDuplicate) {
+    std::cout << hot.first << "\t";
+  }
+  std::cout << std::endl;
+  for (auto hot : countDuplicate) {
+    std::cout << hot.second << "\t";
+  }
+  std::cout << std::endl;
+}
+
+void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
              std::map<id_t, std::set<id_t>>* mReadCentric,
              std::map<id_t, std::set<id_t>>* mWriteCentric) {
   // Read breakdown
@@ -69,8 +138,8 @@ void analyze(std::vector<TraceData>* vTraceData,
   analyzeDependTypes(vTraceData, mReadCentric, true, &indepReads,
                      &depShortReads, &depLongReads);
   std::cout << "[Read BD]\tIndependent\tDep_Short\tDep_Long" << std::endl;
-  std::cout << "\t" << indepReads << "\t" << depShortReads << "\t"
-            << depLongReads << std::endl;
+  std::cout << indepReads << "\t" << depShortReads << "\t" << depLongReads
+            << std::endl;
 
   // Write breakdown
   int32_t indepWrites = 0;     // Writes without correspoding writes
@@ -79,6 +148,8 @@ void analyze(std::vector<TraceData>* vTraceData,
   analyzeDependTypes(vTraceData, mWriteCentric, false, &indepWrites,
                      &depShortWrites, &depLongWrites);
   std::cout << "[Write BD]\tIndependent\tDep_Short\tDep_Long" << std::endl;
-  std::cout << "\t" << indepWrites << "\t" << depShortWrites << "\t"
-            << depLongWrites << std::endl;
+  std::cout << indepWrites << "\t" << depShortWrites << "\t" << depLongWrites
+            << std::endl;
+
+  analyzeHotWrite(vTraceData, mWriteCentric);
 }
