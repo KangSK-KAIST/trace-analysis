@@ -88,10 +88,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-#ifndef COMPRESSER
   analyze(&vTraceData, &mReadCentric, &mWriteCentric);
-#else
-  saveTrace(fileOutName, &vTraceData, &mReadCentric);
-#endif
+  // saveTrace(fileOutName, &vTraceData, &mReadCentric);
   return 0;
 }

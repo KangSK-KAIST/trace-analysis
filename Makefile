@@ -16,12 +16,6 @@ main_snia: src/main.cc build/snia_reader.o build/parser.o build/analyzer.o build
 main_ali: src/main.cc build/alibaba_reader.o build/parser.o build/analyzer.o build/dependent_saver.o
 	$(CC) $(CCFLAGS) -o build/main_ali $^
 
-snia_compresser: src/main.cc build/snia_full_reader.o build/parser.o build/dependent_saver.o
-	$(CC) $(CCFLAGS) -DCOMPRESSER -o build/snia_compresser $^
-
-ali_compresser: src/main.cc build/alibaba_full_reader.o build/parser.o build/dependent_saver.o
-	$(CC) $(CCFLAGS) -DCOMPRESSER -o build/ali_compresser $^
-
 .PHONY: clean
 clean:
 	rm -r build
