@@ -71,8 +71,8 @@ static void analyzeDependTypes(std::vector<TraceData>* vTraceData,
  * This is done in a page-specific manner, which hereby results in the number of
  * reads each pages experience before overwritten.
  */
-static void analyzeHotWrite(std::vector<TraceData>* vTraceData,
-                            std::map<id_t, std::set<id_t>>* mWriteCentric) {
+static void analyzeHotWritePage(std::vector<TraceData>* vTraceData,
+                                std::map<id_t, std::set<id_t>>* mWriteCentric) {
   std::vector<uint32_t> readCountsTotal;
   for (auto write : *mWriteCentric) {
     // Iterate for all writes that are read at least once
@@ -117,7 +117,42 @@ static void analyzeHotWrite(std::vector<TraceData>* vTraceData,
                 [&countDuplicate](int val) { countDuplicate[val]++; });
 
   // Finished all analysis; print data
-  std::cout << "[HotWrite]" << std::endl;
+  std::cout << "[HotWritePage]" << std::endl;
+  for (auto hot : countDuplicate) {
+    std::cout << hot.first << "\t";
+  }
+  std::cout << std::endl;
+  for (auto hot : countDuplicate) {
+    std::cout << hot.second << "\t";
+  }
+  std::cout << std::endl;
+}
+
+/**
+ * @brief Counts all hot writes in request-level
+ *
+ * @param vTraceData (pointer) vector of traces
+ * @param mWriteCentric (pointer) write centric map
+ *
+ * @note Hot writes means the data written by the write was read by other reads.
+ * The function iterates through all hot writes and counts the number of read
+ * requests per write requests.
+ */
+static void analyzeHotWriteRequest(
+    std::vector<TraceData>* vTraceData,
+    std::map<id_t, std::set<id_t>>* mWriteCentric) {
+  std::vector<uint32_t> readCountsTotal;
+  for (auto write : *mWriteCentric) {
+    // Iterate for all writes that are read at least once
+    readCountsTotal.push_back(write.second.size());
+  }
+  // Count each numbers for better reading
+  std::map<int32_t, int64_t> countDuplicate;
+  std::for_each(readCountsTotal.begin(), readCountsTotal.end(),
+                [&countDuplicate](int val) { countDuplicate[val]++; });
+
+  // Finished all analysis; print data
+  std::cout << "[HotWriteRequest]" << std::endl;
   for (auto hot : countDuplicate) {
     std::cout << hot.first << "\t";
   }
@@ -151,5 +186,6 @@ void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
   std::cout << indepWrites << "\t" << depShortWrites << "\t" << depLongWrites
             << std::endl;
 
-  analyzeHotWrite(vTraceData, mWriteCentric);
+  analyzeHotWritePage(vTraceData, mWriteCentric);
+  analyzeHotWriteRequest(vTraceData, mWriteCentric);
 }
