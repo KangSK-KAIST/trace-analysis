@@ -3,7 +3,7 @@ CC := clang++-7
 CCFLAGS := -O2
 
 .PHONY: all
-all: main_snia main_ali snia_compresser ali_compresser
+all: main_snia main_ali
 
 include src/reader/makefile.mk
 include src/parser/makefile.mk
