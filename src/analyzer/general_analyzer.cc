@@ -126,6 +126,16 @@ static void analyzeHotWritePage(std::vector<TraceData>* vTraceData,
     std::cout << hot.second << "\t";
   }
   std::cout << std::endl;
+
+  // Print average value for graph
+  int64_t countTotal = 0;
+  int64_t readTotal = 0;
+  for (auto dup : countDuplicate) {
+    countTotal += dup.second;
+    readTotal += dup.first * dup.second;
+  }
+  double averageRead = (double)readTotal / (double)countTotal;
+  std::cout << averageRead << std::endl;
 }
 
 /**
@@ -161,6 +171,16 @@ static void analyzeHotWriteRequest(
     std::cout << hot.second << "\t";
   }
   std::cout << std::endl;
+
+  // Print average value for graph
+  int64_t countTotal = 0;
+  int64_t readTotal = 0;
+  for (auto dup : countDuplicate) {
+    countTotal += dup.second;
+    readTotal += dup.first * dup.second;
+  }
+  double averageRead = (double)readTotal / (double)countTotal;
+  std::cout << averageRead << std::endl;
 }
 
 void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
