@@ -51,7 +51,7 @@ void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax) {
     }
     // snia is in sector ( page = sector * 512 / 4096)
     int64_t addr = strtoull(match[4].str().c_str(), nullptr, 10) * 512;
-    int64_t size = strtoul(match[5].str().c_str(), nullptr, 10) * 512;
+    int64_t size = strtoull(match[5].str().c_str(), nullptr, 10) * 512;
     int64_t pageStart = addr / PAGE_SIZE;
     int64_t pageEnd = (addr + size) / PAGE_SIZE;
     *pageMin = (*pageMin > pageStart) ? pageStart : *pageMin;
@@ -62,7 +62,8 @@ void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax) {
 #ifdef LOGGGING
   std::cerr << "[LOG]\tTotal " << totalBytes << " bytes in trace." << std::endl;
 #endif
-  std::cout << "Total transfer size in bytes\t" << totalBytes << std::endl;
+  std::cout << "[Total Transfer (MB)]\t" << totalBytes / 1024 / 1024
+            << std::endl;
   file.close();
 }
 
@@ -75,7 +76,7 @@ void printStat(std::string fileName) {
 #ifdef LOGGING
   std::cerr << "[LOG]\tPrinting File Stat..." << std::endl;
 #endif
-  std::cout << "FileName:\t" << fileName << std::endl;
+  std::cout << "[FileName]\t" << fileName << std::endl;
 }
 
 /**

@@ -50,8 +50,8 @@ void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax) {
       std::cerr << "[ERROR]\tRegex-match error" << std::endl;
       std::terminate();
     }
-    int64_t addr = strtoull(match[4].str().c_str(), nullptr, 10);
-    int64_t size = strtoul(match[5].str().c_str(), nullptr, 10);
+    int64_t addr = strtoull(match[2].str().c_str(), nullptr, 10);
+    int64_t size = strtoull(match[3].str().c_str(), nullptr, 10);
     int64_t pageStart = addr / PAGE_SIZE;
     int64_t pageEnd = (addr + size) / PAGE_SIZE;
     *pageMin = (*pageMin > pageStart) ? pageStart : *pageMin;
@@ -62,7 +62,8 @@ void scanTrace(std::string fileName, int64_t *pageMin, int64_t *pageMax) {
 #ifdef LOGGGING
   std::cerr << "[LOG]\tTotal " << totalBytes << " bytes in trace." << std::endl;
 #endif
-  std::cout << "Total transfer size in bytes\t" << totalBytes << std::endl;
+  std::cout << "[Total Transfer (MB)]\t" << totalBytes / 1024 / 1024
+            << std::endl;
   file.close();
 }
 
@@ -70,7 +71,7 @@ void printStat(std::string fileName) {
 #ifdef LOGGING
   std::cerr << "[LOG]\tPrinting File Stat..." << std::endl;
 #endif
-  std::cout << "FileName:\t" << fileName << std::endl;
+  std::cout << "[FileName]\t" << fileName << std::endl;
 }
 
 void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
@@ -89,10 +90,6 @@ void readTrace(std::string fileName, std::vector<TraceData> *vTraceData,
 
   bool isFullRead = (size == 0);
   int64_t bytesToRead = (uint64_t)size * 1024 * 1024;  // size * 1024 * 1024
-
-  std::smatch match;
-  std::regex regexTrace(
-      "[0-9]+,([a-zA-Z]+),([0-9]+),([0-9]+),([0-9]{4})([0-9]+)");
 
   while (std::getline(file, line)) {
     if (!std::regex_match(line, match, regexTrace)) {

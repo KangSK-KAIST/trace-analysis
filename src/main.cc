@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
   std::string fileName(argv[1]);
   std::string sizeInput(argv[2]);
   int32_t size = strtoul(sizeInput.c_str(), nullptr, 10);
+  printStat(fileName);
 
   int64_t pageMin = 0;
   int64_t pageMax = 0;
@@ -56,7 +57,6 @@ int main(int argc, char** argv) {
 #endif
 
   std::vector<TraceData> vTraceData;
-  printStat(fileName);
   readTrace(fileName, &vTraceData, size);
 
 #ifdef DEBUG
