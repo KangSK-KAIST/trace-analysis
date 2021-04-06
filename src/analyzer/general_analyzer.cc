@@ -87,6 +87,10 @@ static void analyzeTraceSeq(std::vector<TraceData>* vTraceData,
   int64_t logicalSeqSize = 0;
   int64_t physicalSeqSize = 0;
 
+  // Each physical sequential block sizes
+  std::vector<int64_t> lgSeqBlockSize;
+  std::vector<int64_t> phySeqBlockSize;
+
   // Loop through all traces
   for (auto iter = vTraceData->begin(); iter < vTraceData->end(); iter++) {
     if (!iter->isRead) continue;
@@ -118,22 +122,31 @@ static void analyzeTraceSeq(std::vector<TraceData>* vTraceData,
       } else {
         // It is logically sequential; is it physically too?
         bool isPhySeq = true;
+        // Temporary sequential size
+        int64_t lgSeq = 0;
+        int64_t lgSeqSize = 0;
         int64_t phySeq = 0;
         int64_t phySeqSize = 0;
         // Loop through seqential blocks
         for (int32_t i = prev; i < id; i++) {
-          logicalSeq++;
-          logicalSeqSize += window[i].nLB;
+          lgSeq++;
+          lgSeqSize += window[i].nLB;
           phySeq++;
           phySeqSize += window[i].nLB;
           if ((*mReadCentric)[window[i].id].size() > 1) {
             isPhySeq = false;
+            phySeqBlockSize.push_back(phySeqSize);
+            phySeq = 0;
+            phySeqSize = 0;
           }
         }
         if (isPhySeq) {
           physicalSeq += phySeq;
           physicalSeqSize += phySeqSize;
         }
+        logicalSeqSize += lgSeq;
+        logicalSeqSize += lgSeqSize;
+        lgSeqBlockSize.push_back(lgSeqSize);
       }
     }
   }
@@ -142,6 +155,16 @@ static void analyzeTraceSeq(std::vector<TraceData>* vTraceData,
   std::cout << logicalRand << "\t" << logicalRandSize << "\t" << logicalSeq
             << "\t" << logicalSeqSize << "\t" << physicalSeq << "\t"
             << physicalSeqSize << std::endl;
+
+  std::cout << "[Sequential BD]" << std::endl;
+  std::cout << (double)std::accumulate(lgSeqBlockSize.begin(),
+                                       lgSeqBlockSize.end(), (int64_t)0) /
+                   (double)lgSeqBlockSize.size()
+            << "\t"
+            << (double)std::accumulate(phySeqBlockSize.begin(),
+                                       phySeqBlockSize.end(), (int64_t)0) /
+                   (double)phySeqBlockSize.size()
+            << std::endl;
 }
 
 /**
