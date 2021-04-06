@@ -37,7 +37,9 @@
 static void analyzeTrace(std::vector<TraceData>* vTraceData) {
   std::vector<int64_t> parallelCount;
   for (auto trace : *vTraceData) {
+    // If write, pass
     if (!trace.isRead) continue;
+    // Is a read, count all requests within 20us
     int64_t count = 0;
     for (auto cmpTrace : *vTraceData)
       // TODO Use better algorithm here
