@@ -114,10 +114,10 @@ static void analyzeDependTypes(std::vector<TraceData>* vTraceData,
  * where written multiply means it is reading from a segmented range of address,
  * not meaning hotspot.
  */
-static void analyzeDependTypesSize(std::vector<TraceData>* vTraceData,
-                                   std::map<id_t, std::set<id_t>>* mCentric,
-                                   bool isRead, int64_t* indep,
-                                   int64_t* depShort, int64_t* depLong) {
+static void analyzeDependTypeSize(std::vector<TraceData>* vTraceData,
+                                  std::map<id_t, std::set<id_t>>* mCentric,
+                                  bool isRead, int64_t* indep,
+                                  int64_t* depShort, int64_t* depLong) {
   for (auto trace : (*vTraceData)) {
     if (trace.isRead == isRead) {
       if (mCentric->count(trace.id)) {
@@ -276,8 +276,8 @@ void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
   int64_t indepReadSize = 0;     // Reads without correspoding writes
   int64_t depShortReadSize = 0;  // Reads connected to one write
   int64_t depLongReadSize = 0;   // Reads with multiple corresponding writes
-  analyzeDependTypes(vTraceData, mReadCentric, true, &indepReadSize,
-                     &depShortReadSize, &depLongReadSize);
+  analyzeDependTypeSize(vTraceData, mReadCentric, true, &indepReadSize,
+                        &depShortReadSize, &depLongReadSize);
   std::cout << "[Read BD (Bytes)]\tIndependent\tDep_Short\tDep_Long"
             << std::endl;
   std::cout << indepReadSize << "\t" << depShortReadSize << "\t"
@@ -297,8 +297,8 @@ void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
   int64_t indepWriteSize = 0;     // Writes without correspoding writes
   int64_t depShortWriteSize = 0;  // Writes connected to one write
   int64_t depLongWriteSize = 0;   // Writes with multiple corresponding writes
-  analyzeDependTypes(vTraceData, mWriteCentric, false, &indepWriteSize,
-                     &depShortWriteSize, &depLongWriteSize);
+  analyzeDependTypeSize(vTraceData, mWriteCentric, false, &indepWriteSize,
+                        &depShortWriteSize, &depLongWriteSize);
   std::cout << "[Write BD (Bytes)]\tIndependent\tDep_Short\tDep_Long"
             << std::endl;
   std::cout << indepWriteSize << "\t" << depShortWriteSize << "\t"
