@@ -23,6 +23,40 @@
 #include "general_analyzer.hh"
 
 /**
+ * @brief Counts the number of requests around (+-20 us) each read
+ *
+ * @param vTraceData (pointer) vector of trace data
+ *
+ * @note The purpose of this analytics is to numerize the best-case boost of
+ * performance. 20us was selected because it is the currently fastest NAND's
+ * latency, and therefore we can safely assume that requests around +- 20us of
+ * some request will be handled together. The total number of requests is the
+ * maximum parallelism we can get, while the poorest case is when all of them
+ * are stalled on each other.
+ */
+static void analyzeTrace(std::vector<TraceData>* vTraceData) {
+  std::vector<int64_t> parallelCount;
+  for (auto trace : *vTraceData) {
+    if (!trace.isRead) continue;
+    int64_t count = 0;
+    for (auto cmpTrace : *vTraceData)
+      // TODO Use better algorithm here
+      // Ignoring second-level comparison (may overflow)
+      if ((trace.sec == cmpTrace.sec) &&
+          (std::abs((long long)trace.psec - (long long)cmpTrace.psec) <=
+           (long long)20000000)) {
+        count++;
+      }
+    parallelCount.push_back(count);
+  }
+  std::cout << "[TraceParallel]" << std::endl;
+  std::cout << (double)std::accumulate(parallelCount.begin(),
+                                       parallelCount.end(), (uint64_t)0) /
+                   (double)parallelCount.size()
+            << std::endl;
+}
+
+/**
  * @brief Counts number of each occurences; indep/single/multi
  *
  * @param vTraceData (pointer) vector of trace data
@@ -186,6 +220,9 @@ static void analyzeHotWriteRequest(
 void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
              std::map<id_t, std::set<id_t>>* mReadCentric,
              std::map<id_t, std::set<id_t>>* mWriteCentric) {
+  // Trace parallelism
+  analyzeTrace(vTraceData);
+
   // Read breakdown
   int32_t indepReads = 0;     // Reads without correspoding writes
   int32_t depShortReads = 0;  // Reads connected to one write
