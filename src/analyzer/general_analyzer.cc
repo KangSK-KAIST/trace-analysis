@@ -58,6 +58,92 @@ static void analyzeTrace(std::vector<TraceData>* vTraceData) {
             << std::endl;
 }
 
+static void analyzeWindow(std::vector<TraceData>* vWindow,
+                          std::vector<int32_t>* chunks) {
+  int64_t prevPage = -1;
+  int32_t index = 0;
+  for (auto trace : *vWindow) {
+    if ((trace.sLBA / PAGE_SIZE != prevPage) &&
+        (trace.sLBA / PAGE_SIZE != prevPage + 1)) {
+      // A new sequencial block starts
+      chunks->push_back(index);
+    } else {
+#ifdef LOGGING
+      std::cerr << "[LOG]\tSequential !" << std::endl;
+#endif
+    }
+    prevPage = (trace.sLBA + trace.nLB) / PAGE_SIZE;
+    index++;
+  }
+}
+
+static void analyzeTraceSeq(std::vector<TraceData>* vTraceData,
+                            std::map<id_t, std::set<id_t>>* mReadCentric) {
+  // Parameters to solve
+  int64_t logicalRand = 0;
+  int64_t logicalSeq = 0;
+  int64_t physicalSeq = 0;
+  int64_t logicalRandSize = 0;
+  int64_t logicalSeqSize = 0;
+  int64_t physicalSeqSize = 0;
+
+  // Loop through all traces
+  for (auto iter = vTraceData->begin(); iter < vTraceData->end(); iter++) {
+    if (!iter->isRead) continue;
+    std::vector<TraceData> window;
+    // Time of first read in the time window
+    int64_t startTime = iter->sec * (uint64_t)1000000000000 + iter->psec;
+    // Loop for 20 us
+    while ((iter < vTraceData->end()) &&
+           (iter->sec * (uint64_t)1000000000000 + iter->psec <
+            startTime + (uint64_t)20000000)) {
+      if (!(iter->isRead)) {
+        iter++;
+      } else {
+        window.push_back(*iter);
+        iter++;
+      }
+    }
+    std::vector<int32_t> chunks;
+    analyzeWindow(&window, &chunks);
+
+    // Now we have all index of sequential starts
+    int32_t prev = 0;
+    for (auto id : chunks) {
+      if (id == 0) continue;
+      if (id == prev + 1) {  // The request was random
+        logicalRand++;
+        logicalRandSize += window[prev].nLB;
+        prev = id;
+      } else {
+        // It is logically sequential; is it physically too?
+        bool isPhySeq = true;
+        int64_t phySeq = 0;
+        int64_t phySeqSize = 0;
+        // Loop through seqential blocks
+        for (int32_t i = prev; i < id; i++) {
+          logicalSeq++;
+          logicalSeqSize += window[i].nLB;
+          phySeq++;
+          phySeqSize += window[i].nLB;
+          if ((*mReadCentric)[window[i].id].size() > 1) {
+            isPhySeq = false;
+          }
+        }
+        if (isPhySeq) {
+          physicalSeq += phySeq;
+          physicalSeqSize += phySeqSize;
+        }
+      }
+    }
+  }
+  // Print result
+  std::cout << "[Sequential]" << std::endl;
+  std::cout << logicalRand << "\t" << logicalRandSize << "\t" << logicalSeq
+            << "\t" << logicalSeqSize << "\t" << physicalSeq << "\t"
+            << physicalSeqSize << std::endl;
+}
+
 /**
  * @brief Counts number of each occurences; indep/single/multi
  *
@@ -68,14 +154,14 @@ static void analyzeTrace(std::vector<TraceData>* vTraceData) {
  * @param depShort (pointer) number of single dependent traces
  * @param depLong (pointer) number of multiple dependent traces
  *
- * @note Independent traces are read/write traces that are reading/writing from
- * addresses never written/read by others.
- * Single dependent traces are read/write traces thar are reading/writing from
- * addresses (written by one)/(read once) by others.
- * Multiple dependent traces are read/write traces thar are reading/writing from
- * addresses (written by multiple)/(read multiple times) multiply by others,
- * where written multiply means it is reading from a segmented range of address,
- * not meaning hotspot.
+ * @note Independent traces are read/write traces that are reading/writing
+ * from addresses never written/read by others. Single dependent traces are
+ * read/write traces thar are reading/writing from addresses (written by
+ * one)/(read once) by others. Multiple dependent traces are read/write
+ * traces thar are reading/writing from addresses (written by
+ * multiple)/(read multiple times) multiply by others, where written
+ * multiply means it is reading from a segmented range of address, not
+ * meaning hotspot.
  */
 static void analyzeDependTypes(std::vector<TraceData>* vTraceData,
                                std::map<id_t, std::set<id_t>>* mCentric,
@@ -105,14 +191,13 @@ static void analyzeDependTypes(std::vector<TraceData>* vTraceData,
  * @param depShort (pointer) size of single dependent traces
  * @param depLong (pointer) size of multiple dependent traces
  *
- * @note Independent traces are read/write traces that are reading/writing from
- * addresses never written/read by others.
- * Single dependent traces are read/write traces thar are reading/writing from
- * addresses (written by one)/(read once) by others.
- * Multiple dependent traces are read/write traces that are reading/writing from
- * addresses (written by multiple)/(read multiple times) multiply by others,
- * where written multiply means it is reading from a segmented range of address,
- * not meaning hotspot.
+ * @note Independent traces are read/write traces that are reading/writing
+ * from addresses never written/read by others. Single dependent traces are
+ * read/write traces thar are reading/writing from addresses (written by
+ * one)/(read once) by others. Multiple dependent traces are read/write traces
+ * that are reading/writing from addresses (written by multiple)/(read
+ * multiple times) multiply by others, where written multiply means it is
+ * reading from a segmented range of address, not meaning hotspot.
  */
 static void analyzeDependTypeSize(std::vector<TraceData>* vTraceData,
                                   std::map<id_t, std::set<id_t>>* mCentric,
@@ -138,11 +223,11 @@ static void analyzeDependTypeSize(std::vector<TraceData>* vTraceData,
  * @param vTraceData (pointer) vector of traces
  * @param mWriteCentric (pointer) write centric map
  *
- * @note Hot writes means the data written by the write was read by other reads.
- * The function iterates through all hot writes and the pages they wrote, and
- * count the number of occurances of which the data was read by another request.
- * This is done in a page-specific manner, which hereby results in the number of
- * reads each pages experience before overwritten.
+ * @note Hot writes means the data written by the write was read by other
+ * reads. The function iterates through all hot writes and the pages they
+ * wrote, and count the number of occurances of which the data was read by
+ * another request. This is done in a page-specific manner, which hereby
+ * results in the number of reads each pages experience before overwritten.
  */
 static void analyzeHotWritePage(std::vector<TraceData>* vTraceData,
                                 std::map<id_t, std::set<id_t>>* mWriteCentric) {
@@ -217,9 +302,9 @@ static void analyzeHotWritePage(std::vector<TraceData>* vTraceData,
  * @param vTraceData (pointer) vector of traces
  * @param mWriteCentric (pointer) write centric map
  *
- * @note Hot writes means the data written by the write was read by other reads.
- * The function iterates through all hot writes and counts the number of read
- * requests per write requests.
+ * @note Hot writes means the data written by the write was read by other
+ * reads. The function iterates through all hot writes and counts the number
+ * of read requests per write requests.
  */
 static void analyzeHotWriteRequest(
     std::vector<TraceData>* vTraceData,
@@ -260,7 +345,8 @@ void analyze(std::vector<TraceData>* vTraceData, int64_t pageNum,
              std::map<id_t, std::set<id_t>>* mReadCentric,
              std::map<id_t, std::set<id_t>>* mWriteCentric) {
   // Trace parallelism
-  analyzeTrace(vTraceData);
+  // analyzeTrace(vTraceData);
+  analyzeTraceSeq(vTraceData, mReadCentric);
 
   // Read breakdown
   int32_t indepReads = 0;     // Reads without correspoding writes
