@@ -21,3 +21,11 @@ Able to compress trace files.
 Modified to page-level mapping analysis.
 Much faster compared to version 1.0, as it now can map the whole memory as an array of pages.
 This also means there is no need for considering fragmentation of bytes.
+
+### v2.0
+
+Stable program of page-level mapping analysis.
+
+### v2.1
+
+Also a stable version, but some algorithms should be re-covered, not syntacically, but logically.
